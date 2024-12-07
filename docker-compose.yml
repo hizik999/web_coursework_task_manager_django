@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./task_manager:/app  # Монтирование текущей директории в контейнер
+      - .:/task_manager  # Монтирование текущей директории в контейнер
     depends_on:
       - postgres
     environment:
