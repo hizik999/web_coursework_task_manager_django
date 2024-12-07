@@ -8,8 +8,25 @@ services:
       - "8000:8000"
     volumes:
       - ./task_manager:/app  # Монтирование текущей директории в контейнер
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/task_manager
+      - DEBUG=1
     command: >
       sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+             python manage.py runserver 0.0.0.0:8000"  
+
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
     environment:
-      - DEBUG=1
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=task_manager
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
