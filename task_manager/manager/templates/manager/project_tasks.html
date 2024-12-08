@@ -163,7 +163,7 @@
                     // Отправляем запрос на сервер для обновления статуса задачи
                     const taskId = draggedItem.getAttribute('data-task-id');
                     const newStatusId = list.getAttribute('data-status-id');
-                    fetch(`/tasks/${taskId}/update-status/`, {
+                    fetch(`/manager/tasks/${taskId}/update-status/`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
