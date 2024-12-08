@@ -1,5 +1,6 @@
 from django.shortcuts import render
+from .models import Project
 
-# Create your views here.
-def manager_home(request):
-    return render(request, 'manager/manager.html')
+def project_list(request):
+    projects = Project.objects.all()  # Получение всех проектов
+    return render(request, 'manager/project_list.html', {'projects': projects})

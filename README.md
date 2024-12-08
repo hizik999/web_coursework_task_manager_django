@@ -7,4 +7,5 @@ initial commit
 1. Сделал Dockerfile с образом Django (а также requirements.txt)
 2. Создал проект Django (лежит в папке task_manager)
 3. Сделал docker-compose.yml с конфигом образа Django и добавил туда PostgreSQL, предварительно сконфигурировав database в settings.url
-4. 
+4. Добавил модели данных и провел миграцию
+5. Сделал первую страницу manager/projects, которая отображает все добавленные проекты
