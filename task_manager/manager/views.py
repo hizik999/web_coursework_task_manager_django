@@ -4,7 +4,38 @@ from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
 
+### -----------------------------------API---------------------------------------------------------------------------------------------------------
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Task, Project, Status
+from .serializers import TaskSerializer, ProjectSerializer, StatusSerializer
 
+class ProjectListView(APIView):
+    def get(self, request):
+        projects = Project.objects.all()
+        serializer = ProjectSerializer(projects, many=True)
+        return Response(serializer.data)
+
+class TaskListView(APIView):
+    def get(self, request, project_slug):
+        project = Project.objects.get(slug=project_slug)
+        tasks = Task.objects.filter(project_id=project.id)
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, project_slug):
+        project = Project.objects.get(slug=project_slug)
+        data = request.data
+        data['project'] = project.id
+        serializer = TaskSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+### -----------------------------------Django---------------------------------------------------------------------------------------------------------
 def project_list(request):
     projects = Project.objects.all()  # Получение всех проектов
     return render(request, 'manager/project_list.html', {'projects': projects})

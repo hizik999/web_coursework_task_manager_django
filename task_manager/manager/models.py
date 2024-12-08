@@ -28,9 +28,9 @@ class Task(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, unique=True)
     content = models.TextField()
-    status_id = models.ForeignKey(Status, on_delete=models.PROTECT, related_name='tasks')
-    project_id = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
-    deadline = models.DateTimeField(auto_now_add=True)
+    status_id = models.ForeignKey(Status, on_delete=models.PROTECT, related_name='tasks', null=False)
+    project_id = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks', null=False)
+    deadline = models.DateTimeField()
 
     class Meta:
         db_table = 'tasks'
