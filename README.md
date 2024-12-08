@@ -9,3 +9,4 @@ initial commit
 3. Сделал docker-compose.yml с конфигом образа Django и добавил туда PostgreSQL, предварительно сконфигурировав database в settings.url
 4. Добавил модели данных и провел миграцию
 5. Сделал первую страницу manager/projects, которая отображает все добавленные проекты
+6. Сделал вторую страницу manager/projects/project_slug, которая отображает все задачи в проекте project_slug
