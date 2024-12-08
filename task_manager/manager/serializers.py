@@ -12,8 +12,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TaskSerializer(serializers.ModelSerializer):
-    project_id = ProjectSerializer()  # Вложенный сериализатор
-    status_id = StatusSerializer()
+    status = StatusSerializer(source='status_id', read_only=True)
+    project = ProjectSerializer(source='project_id', read_only=True)
 
     class Meta:
         model = Task

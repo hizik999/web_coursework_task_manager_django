@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+            color: #343a40;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #495057;
+            text-align: center;
+        }
+
+        .projects-container {
+            display: flex;
+            gap: 20px; /* Отступы между карточками */
+            justify-content: center;
+            flex-wrap: wrap; /* Перенос строк для карточек */
+            max-width: 1200px; /* Ограничение ширины */
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .project-card {
+            background: #ffffff;
+            border: 2px solid #ced4da;
+            border-radius: 20px;
+            width: 200px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 18px;
+            color: #495057;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .project-card:hover {
+            transform: scale(1.05); /* Увеличение при наведении */
+        }
+
+        .add-card {
+            background: #f8f9fa;
+            border: 2px dashed #ced4da;
+            border-radius: 20px;
+            width: 200px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            color: #6c757d;
+            text-align: center;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .add-card:hover {
+            transform: scale(1.1); /* Увеличение при наведении */
+            background-color: #e9ecef;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 20px;
+            }
+
+            .projects-container {
+                gap: 15px;
+            }
+
+            .project-card,
+            .add-card {
+                width: 150px;
+                height: 250px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .projects-container {
+                gap: 10px;
+            }
+
+            .project-card,
+            .add-card {
+                width: 120px;
+                height: 200px;
+                font-size: 12px;
+            }
+
+            h1 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Добро пожаловать! Выберите проект</h1>
+    <div class="projects-container" id="projects-container">
+        <!-- Карточки проектов будут добавлены здесь через JavaScript -->
+    </div>
+
+    <script>
+        const apiProjectsUrl = '/manager/api/projects/'; // URL API
+
+        // Функция для получения данных о проектах
+        async function fetchProjects() {
+            try {
+                const response = await fetch(apiProjectsUrl);
+                const projects = await response.json();
+                const container = document.getElementById('projects-container');
+
+                // Добавляем карточки проектов
+                projects.forEach(project => {
+                    const card = document.createElement('div');
+                    card.className = 'project-card';
+                    card.textContent = project.name;
+                    card.onclick = () => {
+                        window.location.href = `/api/${project.slug}/tasks/`;
+                    };
+                    container.appendChild(card);
+                });
+
+                // Добавляем карточку "Добавить проект"
+                const addCard = document.createElement('div');
+                addCard.className = 'add-card';
+                addCard.textContent = '+';
+                addCard.onclick = () => {
+                    window.location.href = '/add/';
+                };
+                container.appendChild(addCard);
+
+            } catch (error) {
+                console.error('Ошибка загрузки проектов:', error);
+            }
+        }
+
+        // Загружаем проекты при загрузке страницы
+        document.addEventListener('DOMContentLoaded', fetchProjects);
+    </script>
+</body>
+</html>

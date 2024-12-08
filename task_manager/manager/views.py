@@ -34,6 +34,9 @@ class TaskListView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+### -----------------------------------Renders for API---------------------------------------------------------------------------------------------------------
+def api_page_projects_list(request):
+    return render(request, 'manager_api/api_project_list.html')
 
 ### -----------------------------------Django---------------------------------------------------------------------------------------------------------
 def project_list(request):
