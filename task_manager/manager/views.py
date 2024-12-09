@@ -38,6 +38,9 @@ class TaskListView(APIView):
 def api_page_projects_list(request):
     return render(request, 'manager_api/api_project_list.html')
 
+def api_page_project_tasks(request, project_slug):
+    return render(request, 'manager_api/api_project_tasks.html')
+
 ### -----------------------------------Django---------------------------------------------------------------------------------------------------------
 def project_list(request):
     projects = Project.objects.all()  # Получение всех проектов

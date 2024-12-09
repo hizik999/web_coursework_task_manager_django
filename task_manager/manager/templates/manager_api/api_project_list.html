@@ -134,7 +134,7 @@
                     card.className = 'project-card';
                     card.textContent = project.name;
                     card.onclick = () => {
-                        window.location.href = `/api/${project.slug}/tasks/`;
+                        window.location.href = `/manager/api_page/${project.slug}/tasks/`;
                     };
                     container.appendChild(card);
                 });
@@ -144,7 +144,7 @@
                 addCard.className = 'add-card';
                 addCard.textContent = '+';
                 addCard.onclick = () => {
-                    window.location.href = '/add/';
+                    window.location.href = '/manager/projects/add/';
                 };
                 container.appendChild(addCard);
 
