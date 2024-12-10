@@ -26,11 +26,28 @@ class ProjectListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TaskListView(APIView):
-    def get(self, request, project_slug):
-        project = Project.objects.get(slug=project_slug)
-        tasks = Task.objects.filter(project_id=project.id)
-        serializer = TaskSerializer(tasks, many=True)
-        return Response(serializer.data)
+    def get(self, request, slug):
+        # Получаем проект по slug
+        project = get_object_or_404(Project, slug=slug)
+        # Получаем все статусы
+        statuses = Status.objects.all()
+        # Формируем данные задач, группируя их по статусу
+        tasks_by_status = [
+            {
+                'status': status.name,
+                'id': status.id,
+                'tasks': TaskSerializer(
+                    Task.objects.filter(project_id=project.id, status_id=status.id), 
+                    many=True
+                ).data
+            }
+            for status in statuses
+        ]
+        # Формируем ответ
+        return Response({
+            'project': ProjectSerializer(project).data,
+            'tasks_by_status': tasks_by_status
+        }, status=status.HTTP_200_OK)
 
     def post(self, request, project_slug):
         project = Project.objects.get(slug=project_slug)

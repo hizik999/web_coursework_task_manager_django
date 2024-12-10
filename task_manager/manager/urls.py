@@ -9,7 +9,7 @@ urlpatterns = [
     ### ---------------------------API------------------------------------------------------------------------------------------------
     path('api/projects/', views.ProjectListView.as_view(), name="api_projects"),
     path('api/projects/add/', views.ProjectListView.as_view(), name="api_projects_add"),
-    path('api/projects/<slug:project_slug>/tasks/', views.TaskListView.as_view(), name="api_project_tasks"),
+    path('api/projects/<slug:slug>/tasks/', views.TaskListView.as_view(), name="api_project_tasks"),
     #path('api/tasks/<int:task_id>/update-status/', views.UpdateTaskStatusView.as_view(), name='update_task_status'),
     ### ---------------------------API pages------------------------------------------------------------------------------------------------
     path('api_page/projects/', views.api_page_projects_list, name="api_page_projects_list"),
