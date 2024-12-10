@@ -1,3 +1,7 @@
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.utils.text import slugify
+
 from django.shortcuts import render, get_object_or_404
 from .models import Project, Status, Task
 from django.http import JsonResponse
@@ -11,6 +15,8 @@ from rest_framework import status
 from .models import Task, Project, Status
 from .serializers import TaskSerializer, ProjectSerializer, StatusSerializer
 
+
+
 class ProjectListView(APIView):
     def get(self, request):
         projects = Project.objects.all()
@@ -23,6 +29,15 @@ class ProjectListView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def patch(self, request, slug):
+        project = get_object_or_404(Project, slug=slug)
+        data = {"name": request.data['name'], "slug": request.data['new_slug']}
+        serializer = ProjectSerializer(instance=project, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TaskListView(APIView):

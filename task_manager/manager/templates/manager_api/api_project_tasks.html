@@ -6,11 +6,210 @@
     <title>Проект</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/api_project_tasks.css' %}">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+            color: #343a40;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: #495057;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon-button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .icon-button:hover {
+            transform: scale(1.2);
+        }
+
+        .modal {
+            display: none; /* Скрываем модальное окно по умолчанию */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        .modal-content p {
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .modal-buttons button {
+            background-color: #495057;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .modal-buttons button:hover {
+            background-color: #343a40;
+        }
+
+        .modal-buttons .cancel-button {
+            background-color: #6c757d;
+        }
+
+        .modal-buttons .cancel-button:hover {
+            background-color: #495057;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-    <h1 id="project-name">Проект</h1>
+    <h1>
+        <span id="project-name">Проект</span>
+        <button class="icon-button" id="edit-project">✏️</button>
+        <button class="icon-button" id="delete-project">🗑️</button>
+    </h1>
     <div class="kanban-board" id="kanban-board"></div>
 
+    <!-- Модальное окно для удаления -->
+    <div class="modal" id="delete-modal">
+        <div class="modal-content">
+            <p>Вы точно хотите удалить этот проект? Все задачи будут удалены вместе с ним.</p>
+            <div class="modal-buttons">
+                <button class="confirm-button">Да</button>
+                <button class="cancel-button">Нет</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <p>Редактировать название проекта</p>
+            <input type="text" id="new-project-name" placeholder="Введите новое название проекта">
+            <p>Редактировать слаг проекта</p>
+            <input type="text" id="new-project-slug" placeholder="Введите новый слаг проекта">
+            <div class="modal-buttons">
+                <button class="save-button">Сохранить</button>
+                <button class="cancel-button">Отмена</button>
+            </div>
+        </div>
+    </div>
+
     <script src="{% static 'script/api_project_tasks.js' %}"></script>
+    <script>
+        const deleteButton = document.getElementById('delete-project');
+        const editButton = document.getElementById('edit-project');
+        const deleteModal = document.getElementById('delete-modal');
+        const editModal = document.getElementById('edit-modal');
+        const confirmButton = document.querySelector('.confirm-button');
+        const cancelDeleteButton = document.querySelector('#delete-modal .cancel-button');
+        const cancelEditButton = document.querySelector('#edit-modal .cancel-button');
+        const saveButton = document.querySelector('.save-button');
+        const newProjectNameInput = document.getElementById('new-project-name');
+        const newProjectSlugInput = document.getElementById('new-project-slug');
+
+        // Удаление проекта
+        deleteButton.addEventListener('click', () => {
+            deleteModal.style.display = 'flex';
+        });
+
+        confirmButton.addEventListener('click', async () => {
+            const projectSlug = window.location.pathname.split('/')[window.location.pathname.split('/').length - 3];
+            const response = await fetch(`/manager/api/projects/${projectSlug}/delete/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            });
+
+            if (response.ok) {
+                alert('Проект успешно удален!');
+                window.location.href = '/manager/api_page/';
+            } else {
+                alert('Ошибка удаления проекта');
+            }
+        });
+
+        cancelDeleteButton.addEventListener('click', () => {
+            deleteModal.style.display = 'none';
+        });
+
+        // Редактирование проекта
+        editButton.addEventListener('click', () => {
+            editModal.style.display = 'flex';
+        });
+
+        saveButton.addEventListener('click', async () => {
+            const projectSlug = window.location.pathname.split('/')[window.location.pathname.split('/').length - 3];
+            console.log(window.location.pathname.split('/'));
+            const newName = newProjectNameInput.value.trim();
+            const newSlug = newProjectSlugInput.value.trim();
+            console.log("{{ csrf_token }}")
+            if (newName) {
+                const response = await fetch(`/manager/api/projects/${projectSlug}/edit/`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({ name: newName, slug: projectSlug, new_slug: newSlug }),
+                });
+
+                if (response.ok) {
+                    alert('Название успешно изменено!');
+                    const data = await response.json();
+                    document.getElementById('project-name').textContent = `Проект: ${data.name}`;
+                    document.title = `Проект: ${data.name}`;
+                } else {
+                    alert('Ошибка изменения названия проекта');
+                }
+                editModal.style.display = 'none';
+            }
+        });
+
+        cancelEditButton.addEventListener('click', () => {
+            editModal.style.display = 'none';
+        });
+    </script>
 </body>
 </html>
