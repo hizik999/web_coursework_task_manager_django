@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/projects/', views.ProjectListView.as_view(), name="api_projects"),
     path('api/projects/add/', views.ProjectListView.as_view(), name="api_projects_add"),
     path('api/projects/<slug:slug>/edit/', views.ProjectListView.as_view(), name="api_projects_edit"),
+    path('api/projects/<slug:slug>/delete/', views.ProjectListView.as_view(), name="api_projects_delete"),
     path('api/projects/<slug:slug>/tasks/', views.TaskListView.as_view(), name="api_project_tasks"),
     
     #path('api/tasks/<int:task_id>/update-status/', views.UpdateTaskStatusView.as_view(), name='update_task_status'),

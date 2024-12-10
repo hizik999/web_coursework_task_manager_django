@@ -1,4 +1,27 @@
 const apiBaseUrl = '/manager/api/projects';
+const deleteButton = document.getElementById('delete-project');
+const editButton = document.getElementById('edit-project');
+const deleteModal = document.getElementById('delete-modal');
+const editModal = document.getElementById('edit-modal');
+const confirmButton = document.querySelector('.confirm-button');
+const cancelDeleteButton = document.querySelector('#delete-modal .cancel-button');
+const cancelEditButton = document.querySelector('#edit-modal .cancel-button');
+const saveButton = document.querySelector('.save-button');
+const newProjectNameInput = document.getElementById('new-project-name');
+const newProjectSlugInput = document.getElementById('new-project-slug');
+
+function getCSRFToken() {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'csrftoken') {
+            return value;
+        }
+    }
+    return null;
+}
+
+const csrfToken = getCSRFToken();
 
 // Получение слага из строки адреса
 function getProjectSlugFromURL() {
@@ -132,5 +155,71 @@ async function initializePage() {
         renderKanbanBoard(data);
     }
 }
+
+// Удаление проекта
+deleteButton.addEventListener('click', () => {
+    deleteModal.style.display = 'flex';
+});
+
+confirmButton.addEventListener('click', async () => {
+    const projectSlug = window.location.pathname.split('/')[window.location.pathname.split('/').length - 3];
+    const response = await fetch(`/manager/api/projects/${projectSlug}/delete/`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+    });
+
+    if (response.ok) {
+        alert('Проект успешно удален!');
+        window.location.href = '/manager/api_page/';
+    } else {
+        alert('Ошибка удаления проекта');
+    }
+});
+
+cancelDeleteButton.addEventListener('click', () => {
+    deleteModal.style.display = 'none';
+});
+
+// Редактирование проекта
+editButton.addEventListener('click', () => {
+    editModal.style.display = 'flex';
+});
+
+saveButton.addEventListener('click', async () => {
+    const projectSlug = window.location.pathname.split('/')[window.location.pathname.split('/').length - 3];
+    console.log(window.location.pathname.split('/'));
+    const newName = newProjectNameInput.value.trim();
+    const newSlug = newProjectSlugInput.value.trim();
+    console.log("{{ csrf_token }}")
+    if (newName) {
+        const response = await fetch(`/manager/api/projects/${projectSlug}/edit/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ name: newName, slug: projectSlug, new_slug: newSlug }),
+        });
+
+        if (response.ok) {
+            alert('Название успешно изменено!');
+            window.location.href = `/manager/api_page/${newSlug}/tasks/`;
+            // const data = await response.json();
+            // document.getElementById('project-name').textContent = `Проект: ${data.name}`;
+            // document.title = `Проект: ${data.name}`;
+
+        } else {
+            alert('Ошибка изменения названия проекта');
+        }
+        editModal.style.display = 'none';
+    }
+});
+
+cancelEditButton.addEventListener('click', () => {
+    editModal.style.display = 'none';
+});
 
 document.addEventListener('DOMContentLoaded', initializePage);
