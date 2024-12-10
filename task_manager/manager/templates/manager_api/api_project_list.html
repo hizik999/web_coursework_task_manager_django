@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projects</title>
+    <title>Меню проектов</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -28,10 +28,10 @@
 
         .projects-container {
             display: flex;
-            gap: 20px; /* Отступы между карточками */
+            gap: 20px;
             justify-content: center;
-            flex-wrap: wrap; /* Перенос строк для карточек */
-            max-width: 1200px; /* Ограничение ширины */
+            flex-wrap: wrap;
+            max-width: 1200px;
             padding: 10px;
             box-sizing: border-box;
         }
@@ -53,7 +53,7 @@
         }
 
         .project-card:hover {
-            transform: scale(1.05); /* Увеличение при наведении */
+            transform: scale(1.05);
         }
 
         .add-card {
@@ -73,53 +73,89 @@
         }
 
         .add-card:hover {
-            transform: scale(1.1); /* Увеличение при наведении */
+            transform: scale(1.1);
             background-color: #e9ecef;
         }
 
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 20px;
-            }
-
-            .projects-container {
-                gap: 15px;
-            }
-
-            .project-card,
-            .add-card {
-                width: 150px;
-                height: 250px;
-                font-size: 14px;
-            }
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
         }
 
-        @media (max-width: 480px) {
-            .projects-container {
-                gap: 10px;
-            }
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
 
-            .project-card,
-            .add-card {
-                width: 120px;
-                height: 200px;
-                font-size: 12px;
-            }
+        .modal-content input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+        }
 
-            h1 {
-                font-size: 18px;
-            }
+        .modal-content .close {
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-content .close:hover {
+            background: #b02a37;
+        }
+
+        .modal-content .create {
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-content .create:hover {
+            background: #218838;
         }
     </style>
 </head>
 <body>
     <h1>Добро пожаловать! Выберите проект</h1>
-    <div class="projects-container" id="projects-container">
-        <!-- Карточки проектов будут добавлены здесь через JavaScript -->
+    <div class="projects-container" id="projects-container"></div>
+
+    <!-- Модальное окно -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2>Создать проект</h2>
+            <input type="text" id="projectName" placeholder="Название проекта" required>
+            <input type="text" id="projectSlug" placeholder="Слаг проекта" required>
+            <button class="close" id="closeModalBtn">Отмена</button>
+            <button class="create" id="createProjectBtn">Создать</button>
+        </div>
     </div>
 
     <script>
         const apiProjectsUrl = '/manager/api/projects/'; // URL API
+        const modal = document.getElementById('modal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const createProjectBtn = document.getElementById('createProjectBtn');
+        const projectNameInput = document.getElementById('projectName');
+        const projectSlugInput = document.getElementById('projectSlug');
 
         // Функция для получения данных о проектах
         async function fetchProjects() {
@@ -127,6 +163,7 @@
                 const response = await fetch(apiProjectsUrl);
                 const projects = await response.json();
                 const container = document.getElementById('projects-container');
+                container.innerHTML = ''; // Очищаем контейнер
 
                 // Добавляем карточки проектов
                 projects.forEach(project => {
@@ -144,7 +181,7 @@
                 addCard.className = 'add-card';
                 addCard.textContent = '+';
                 addCard.onclick = () => {
-                    window.location.href = '/manager/projects/add/';
+                    modal.style.display = 'flex';
                 };
                 container.appendChild(addCard);
 
@@ -152,6 +189,51 @@
                 console.error('Ошибка загрузки проектов:', error);
             }
         }
+
+        // Закрытие модального окна
+        closeModalBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Создание проекта
+        createProjectBtn.addEventListener('click', async () => {
+            const projectName = projectNameInput.value.trim();
+            const projectSlug = projectSlugInput.value.trim();
+
+            if (!projectName || !projectSlug) {
+                alert('Пожалуйста, заполните все поля');
+                return;
+            }
+
+            try {
+                const response = await fetch(apiProjectsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}' // Убедитесь, что CSRF токен добавлен
+                    },
+                    body: JSON.stringify({ name: projectName, slug: projectSlug })
+                });
+
+                if (response.ok) {
+                    modal.style.display = 'none';
+                    projectNameInput.value = '';
+                    projectSlugInput.value = '';
+                    fetchProjects(); // Обновляем список проектов
+                } else {
+                    alert('Ошибка создания проекта');
+                }
+            } catch (error) {
+                console.error('Ошибка при создании проекта:', error);
+            }
+        });
+
+        // Закрытие модального окна при клике вне его
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
 
         // Загружаем проекты при загрузке страницы
         document.addEventListener('DOMContentLoaded', fetchProjects);

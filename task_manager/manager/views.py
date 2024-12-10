@@ -17,6 +17,14 @@ class ProjectListView(APIView):
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
+    def post(self, request):
+        data = request.data
+        serializer = ProjectSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class TaskListView(APIView):
     def get(self, request, project_slug):
         project = Project.objects.get(slug=project_slug)
@@ -33,6 +41,33 @@ class TaskListView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# class UpdateTaskStatusView(APIView):
+#     def post(self, request, task_id):
+#         try:
+#             # Получаем задачу по ID
+#             task = Task.objects.get(id=task_id)
+#         except Task.DoesNotExist:
+#             return Response({'error': 'Задача не найдена'}, status=status.HTTP_404_NOT_FOUND)
+
+#         # Получаем ID статуса из тела запроса
+#         status_id = request.data.get('status_id')
+#         if not status_id:
+#             return Response({'error': 'Поле status_id обязательно'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             # Получаем объект статуса
+#             new_status = Status.objects.get(id=status_id)
+#         except Status.DoesNotExist:
+#             return Response({'error': 'Статус не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+#         # Обновляем статус задачи
+#         task.status = new_status
+#         task.save()
+
+#         # Возвращаем обновлённую задачу
+#         serializer = TaskSerializer(task)
+#         return Response({'message': 'Статус задачи обновлён', 'task': serializer.data}, status=status.HTTP_200_OK)
 
 ### -----------------------------------Renders for API---------------------------------------------------------------------------------------------------------
 def api_page_projects_list(request):
