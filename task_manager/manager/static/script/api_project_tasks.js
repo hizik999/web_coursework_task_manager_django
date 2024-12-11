@@ -93,7 +93,7 @@ function openTaskModal(task) {
     document.getElementById('task-modal-name').textContent = task.name;
     document.getElementById('task-modal-status').textContent = task.status_name;
     document.getElementById('task-modal-content').textContent = task.content || 'Описание отсутствует';
-    document.getElementById('task-modal-deadline').textContent = task.deadline ? new Date(task.deadline).toLocaleString() : 'Нет дедлайна';
+    document.getElementById('task-modal-deadline').textContent = task.deadline ? new Date(task.deadline).toISOString().split('T')[0] : 'Нет дедлайна';
     document.getElementById('delete-task-button').setAttribute('data-task-id', task.id);
     taskModal.style.display = 'flex';
 }
@@ -244,8 +244,6 @@ document.getElementById('add-task-form').addEventListener('submit', async (e) =>
     const content = document.getElementById('task-content').value;
     const statusId = document.getElementById('task-status').value;
     const deadlineDate = document.getElementById('task-deadline-date').value;
-    const deadlineTime = document.getElementById('task-deadline-time').value;
-    const deadline = deadlineDate && deadlineTime ? `${deadlineDate}T${deadlineTime}` : null;
 
     const response = await fetch(`/manager/api/projects/${projectSlug}/tasks/add/`, {
         method: 'POST',
@@ -257,7 +255,7 @@ document.getElementById('add-task-form').addEventListener('submit', async (e) =>
             name,
             content,
             status: statusId,
-            deadline,
+            deadline: deadlineDate,
             slug: projectSlug
         }),
     });
@@ -286,7 +284,7 @@ document.getElementById('edit-task-button').addEventListener('click', () => {
     const currentDeadline = document.getElementById('task-modal-deadline').textContent;
 
     document.getElementById('edit-task-content').value = currentContent.trim();
-    document.getElementById('edit-task-deadline').value = new Date(currentDeadline).toISOString().slice(0, -1);
+    document.getElementById('edit-task-deadline').value = currentDeadline;
 });
 
 // Отменить редактирование
@@ -467,7 +465,7 @@ editTaskButton.addEventListener('click', () => {
 
     // Проверка на наличие дедлайна
     
-    const isoDate = dateObject.toISOString();
+    const isoDate = dateObject;
     console.log(isoDate);
     taskDeadlineDateInput.value = isoDate;//.split(' ')[0]; // Дата в формате yyyy-MM-dd
     // taskDeadlineTimeInput.value = isoDate.split(' ')[1].slice(0, 5); // Время в формате HH:mm

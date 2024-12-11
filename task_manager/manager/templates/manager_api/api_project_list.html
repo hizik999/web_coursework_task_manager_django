@@ -17,8 +17,10 @@
             <h2>Создать проект</h2>
             <input type="text" id="projectName" placeholder="Название проекта" required>
             <input type="text" id="projectSlug" placeholder="Слаг проекта" required>
-            <button class="close" id="closeModalBtn">Отмена</button>
-            <button class="create" id="createProjectBtn">Создать</button>
+            <div class="modal-buttons">
+                <button class="cancel-button" id="closeModalBtn">Отмена</button>
+                <button class="edit-button" id="createProjectBtn">Создать</button>
+            </div>
         </div>
     </div>
     <script src="{% static 'script/api_project_list.js' %}"></script>

@@ -69,8 +69,6 @@ h1 {
     transform: scale(1.1);
     background-color: #e9ecef;
 }
-
-/* Модальное окно */
 .modal {
     display: none;
     position: fixed;
@@ -78,50 +76,115 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     justify-content: center;
     align-items: center;
+    z-index: 1000;
 }
 
 .modal-content {
-    background: #fff;
-    padding: 20px;
+    background-color: #fff;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    width: 300px;
+    padding: 20px 30px; /* Добавлены отступы */
+    text-align: left; /* Текст в левом выравнивании */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 400px; /* Фиксированная ширина */
+    max-width: 90%;
 }
 
-.modal-content input {
+.modal-content h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #343a40;
+    text-align: center; /* Заголовок по центру */
+}
+
+.modal-content .form-row {
+    display: flex;
+    flex-direction: column; /* Вертикальная структура для метки и ввода */
+    margin-bottom: 15px; /* Отступ между строками */
+}
+
+.modal-content label {
+    padding-top: 20px;
+    font-weight: bold;
+    color: #495057;
+    margin-bottom: 100px; /* Отступ от метки до поля */
+}
+
+.modal-content input, 
+.modal-content textarea, 
+.modal-content select {
+    margin-bottom: 15px; /* Отступ между полями */
     width: 100%;
-    margin-bottom: 10px;
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #ced4da;
     border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
 }
 
-.modal-content .close {
-    background: #dc3545;
-    color: white;
-    padding: 5px 10px;
+.modal-buttons {
+    display: flex;
+    justify-content: space-between; /* Кнопки с равным отступом */
+    margin-top: 15px;
+}
+
+.modal-buttons button {
+    background-color: #495057;
+    color: #fff;
     border: none;
+    padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
 }
 
-.modal-content .close:hover {
-    background: #b02a37;
+.modal-buttons button:hover {
+    background-color: #343a40;
 }
 
-.modal-content .create {
-    background: #28a745;
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 5px;
+.modal-buttons .cancel-button {
+    background-color: #6c757d;
+}
+
+.modal-buttons .edit-task-button {
+    background-color: #6c757d;
+}
+
+.modal-buttons .delete-task-button {
+    background-color: #6c757d;
+}
+
+.modal-buttons .cancel-button:hover {
+    background-color: #495057;
+}
+
+/* Дополнительные стили для времени и даты */
+.modal-content .time-picker,
+.modal-content .date-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Расстояние между текстовым полем и иконкой */
+}
+
+.modal-content .time-picker input,
+.modal-content .date-picker input {
+    flex: 1;
+}
+
+/* Общий стиль для иконок */
+.modal-content .time-picker .icon,
+.modal-content .date-picker .icon {
+    font-size: 20px;
+    color: #6c757d;
     cursor: pointer;
+    transition: color 0.3s ease;
 }
 
-.modal-content .create:hover {
-    background: #218838;
+.modal-content .time-picker .icon:hover,
+.modal-content .date-picker .icon:hover {
+    color: #343a40;
 }
