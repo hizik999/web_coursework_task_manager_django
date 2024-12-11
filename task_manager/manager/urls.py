@@ -7,8 +7,11 @@ urlpatterns = [
     path('projects/<slug:slug>/', views.project_tasks, name='project_tasks'),
     path('tasks/<int:task_id>/update-status/', views.update_task_status, name='update_task_status'),
     ### ---------------------------API------------------------------------------------------------------------------------------------
+    ### GET вывод всех проектов
     path('api/projects/', views.ProjectListView.as_view(), name="api_projects"),
+    ### POST создание проекта
     path('api/projects/add/', views.ProjectListView.as_view(), name="api_projects_add"),
+    
     path('api/projects/<slug:slug>/edit/', views.ProjectListView.as_view(), name="api_projects_edit"),
     path('api/projects/<slug:slug>/delete/', views.ProjectListView.as_view(), name="api_projects_delete"),
     path('api/projects/<slug:slug>/tasks/', views.TaskListView.as_view(), name="api_project_tasks"),

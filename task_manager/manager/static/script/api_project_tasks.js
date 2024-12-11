@@ -225,6 +225,72 @@ function enableDragAndDrop() {
     });
 }
 
+// Удаление проекта
+deleteButton.addEventListener('click', () => {
+    deleteModal.style.display = 'flex';
+});
+
+confirmButton.addEventListener('click', async () => {
+    const projectSlug = window.location.pathname.split('/')[window.location.pathname.split('/').length - 3];
+    const response = await fetch(`/manager/api/projects/${projectSlug}/delete/`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+    });
+
+    if (response.ok) {
+        alert('Проект успешно удален!');
+        window.location.href = '/manager/api_page/projects/';
+    } else {
+        alert('Ошибка удаления проекта');
+    }
+});
+
+cancelDeleteButton.addEventListener('click', () => {
+    deleteModal.style.display = 'none';
+});
+
+// Редактирование проекта
+editButton.addEventListener('click', () => {
+    editModal.style.display = 'flex';
+});
+
+saveButton.addEventListener('click', async () => {
+    const projectSlug = window.location.pathname.split('/')[window.location.pathname.split('/').length - 3];
+    console.log(window.location.pathname.split('/'));
+    const newName = newProjectNameInput.value.trim();
+    const newSlug = newProjectSlugInput.value.trim();
+    console.log("{{ csrf_token }}")
+    if (newName) {
+        const response = await fetch(`/manager/api/projects/${projectSlug}/edit/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ name: newName, slug: projectSlug, new_slug: newSlug }),
+        });
+
+        if (response.ok) {
+            alert('Название успешно изменено!');
+            window.location.href = `/manager/api_page/${newSlug}/tasks/`;
+            // const data = await response.json();
+            // document.getElementById('project-name').textContent = `Проект: ${data.name}`;
+            // document.title = `Проект: ${data.name}`;
+
+        } else {
+            alert('Ошибка изменения названия проекта');
+        }
+        editModal.style.display = 'none';
+    }
+});
+
+cancelEditButton.addEventListener('click', () => {
+    editModal.style.display = 'none';
+});
+
 // Инициализация страницы
 async function initializePage() {
     const projectSlug = getProjectSlugFromURL();

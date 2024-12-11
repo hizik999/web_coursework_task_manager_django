@@ -29,20 +29,22 @@ class ProjectListView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = ProjectSerializer(data=request.data)
+        data = request.data
+        serializer = ProjectSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
     def patch(self, request, slug):
         project = get_object_or_404(Project, slug=slug)
-        serializer = ProjectSerializer(instance=project, data=request.data, partial=True)
+        data = {"name": request.data['name'], "slug": request.data['new_slug']}
+        serializer = ProjectSerializer(instance=project, data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
     def delete(self, request, slug):
         project = get_object_or_404(Project, slug=slug)
         project.delete()

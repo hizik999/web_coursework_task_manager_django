@@ -1,3 +1,16 @@
+function getCSRFToken() {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'csrftoken') {
+            return value;
+        }
+    }
+    return null;
+}
+
+const csrfToken = getCSRFToken();
+
 const apiProjectsUrl = '/manager/api/projects/'; // URL API
         const modal = document.getElementById('modal');
         const closeModalBtn = document.getElementById('closeModalBtn');
@@ -54,11 +67,12 @@ const apiProjectsUrl = '/manager/api/projects/'; // URL API
             }
 
             try {
-                const response = await fetch(apiProjectsUrl, {
+                
+                const response = await fetch(apiProjectsUrl + "add/", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}' // Убедитесь, что CSRF токен добавлен
+                        'X-CSRFToken': csrfToken // Убедитесь, что CSRF токен добавлен
                     },
                     body: JSON.stringify({ name: projectName, slug: projectSlug })
                 });
