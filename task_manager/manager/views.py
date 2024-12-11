@@ -62,6 +62,21 @@ class TaskDetailsView(APIView):
     def patch(self, request, task_id):
         task = get_object_or_404(Task, id=task_id)
         data = request.data
+        data["status"] = task.status_id
+        data["name"] = task.name
+        serializer = TaskSerializer(instance=task, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def post(self, request, task_id):
+        task = get_object_or_404(Task, id=task_id)
+        data = {}
+        data["content"] = task.content
+        data["deadline"] = task.deadline
+        data["status"] = request.data["status_id"]
+        data["name"] = task.name
         serializer = TaskSerializer(instance=task, data=data)
         if serializer.is_valid():
             serializer.save()

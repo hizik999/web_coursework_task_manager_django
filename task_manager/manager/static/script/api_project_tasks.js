@@ -171,8 +171,8 @@ cancelAddTaskButton.addEventListener('click', () => {
 function renderKanbanBoard(data) {
     const kanbanBoard = document.getElementById('kanban-board');
     kanbanBoard.innerHTML = '';
-    document.getElementById('project-name').textContent = `Проект: ${data.project.name}`;
-    document.title = `Проект: ${data.project.name}`;
+    document.getElementById('project-name').textContent = `${data.project.name}`;
+    document.title = `${data.project.name}`;
     data.tasks_by_status.forEach(column => {
         const columnElement = document.createElement('div');
         columnElement.className = 'kanban-column';
@@ -226,7 +226,7 @@ document.getElementById('delete-task-button').addEventListener('click', async ()
         });
 
         if (response.ok) {
-            alert('Задача успешно удалена!');
+            //alert('Задача успешно удалена!');
             document.getElementById('task-modal').style.display = 'none';
             initializePage(); // Обновление задач на странице
         } else {
@@ -263,12 +263,83 @@ document.getElementById('add-task-form').addEventListener('submit', async (e) =>
     });
 
     if (response.ok) {
-        alert('Задача успешно добавлена!');
+        //alert('Задача успешно добавлена!');
         document.getElementById('add-task-modal').style.display = 'none';
         initializePage();
     } else {
         alert('Ошибка добавления задачи');
     }
+});
+
+// Показать форму редактирования
+document.getElementById('edit-task-button').addEventListener('click', () => {
+    // Скрываем основное содержимое и показываем форму
+    document.getElementById('task-modal-content').style.display = 'none';
+    document.getElementById('task-modal-deadline').style.display = 'none';
+    document.getElementById('task-modal-buttons').style.display = 'none';
+
+    const editForm = document.getElementById('edit-task-form');
+    editForm.style.display = 'block';
+
+    // Заполняем поля формы текущими значениями
+    const currentContent = document.getElementById('task-modal-content').textContent;
+    const currentDeadline = document.getElementById('task-modal-deadline').textContent;
+
+    document.getElementById('edit-task-content').value = currentContent.trim();
+    document.getElementById('edit-task-deadline').value = new Date(currentDeadline).toISOString().slice(0, -1);
+});
+
+// Отменить редактирование
+document.getElementById('cancel-edit-task').addEventListener('click', () => {
+    const editForm = document.getElementById('edit-task-form');
+    editForm.style.display = 'none';
+
+    // Показываем обратно основное содержимое
+    document.getElementById('task-modal-content').style.display = 'block';
+    document.getElementById('task-modal-deadline').style.display = 'block';
+    document.getElementById('task-modal-buttons').style.display = 'flex';
+});
+
+// Сохранить изменения
+document.getElementById('edit-task-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    // document.getElementById('task-modal-content-p').style.display = 'block';
+    // document.getElementById('task-modal-deadline-p').style.display = 'block';
+    const taskId = document.getElementById('delete-task-button').getAttribute('data-task-id');
+    const updatedContent = document.getElementById('edit-task-content').value;
+    const updatedDeadline = document.getElementById('edit-task-deadline').value;
+
+    // Отправляем PATCH запрос на сервер
+    fetch(`/manager/api/tasks/${taskId}/update/`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify({
+            content: updatedContent,
+            deadline: updatedDeadline,
+            //name: document.getElementById('edit-task-name').value,
+            //status: document.getElementById('edit-task-status').value
+        }),
+    })
+        .then((response) => {
+            if (response.ok) {
+                //alert('Задача успешно обновлена!');
+                // Обновляем содержимое модалки
+                document.getElementById('task-modal-content').textContent = updatedContent;
+                document.getElementById('task-modal-deadline').textContent = new Date(updatedDeadline).toLocaleString();
+
+                // Скрываем форму редактирования и показываем основное содержимое
+                document.getElementById('edit-task-form').style.display = 'none';
+                document.getElementById('task-modal-content').style.display = 'block';
+                document.getElementById('task-modal-deadline').style.display = 'block';
+                document.getElementById('task-modal-buttons').style.display = 'flex';
+            } else {
+                alert('Ошибка обновления задачи!');
+            }
+        })
+        .catch((error) => console.error('Ошибка:', error));
 });
 
 // Функционал перетаскивания задач
@@ -313,7 +384,7 @@ function enableDragAndDrop() {
                 const taskId = draggedItem.getAttribute('data-task-id');
                 const newStatusId = list.getAttribute('data-status-id');
 
-                fetch(`/manager/tasks/${taskId}/update-status/`, {
+                fetch(`/manager/api/tasks/${taskId}/update/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -346,7 +417,7 @@ confirmButton.addEventListener('click', async () => {
     });
 
     if (response.ok) {
-        alert('Проект успешно удален!');
+        //alert('Проект успешно удален!');
         window.location.href = '/manager/api_page/projects/';
     } else {
         alert('Ошибка удаления проекта');
@@ -358,8 +429,51 @@ cancelDeleteButton.addEventListener('click', () => {
 });
 
 // Редактирование проекта
-editButton.addEventListener('click', () => {
-    editModal.style.display = 'flex';
+const editTaskButton = document.getElementById('edit-task-button');
+editTaskButton.addEventListener('click', () => {
+    // document.getElementById('task-modal-content-p').style.display = 'none';
+    // document.getElementById('task-modal-deadline-p').style.display = 'none';
+    const taskDescriptionInput = document.getElementById('edit-task-content');
+    const taskDeadlineDateInput = document.getElementById('edit-task-deadline-date');
+    const taskDeadlineTimeInput = document.getElementById('edit-task-deadline-time');
+    const deadline = document.getElementById('task-modal-deadline').textContent;
+    console.log(deadline);
+    // Заполнение полей для редактирования
+    taskDescriptionInput.value = document.getElementById('task-modal-content').textContent;
+    
+
+
+
+    // Разбиваем строку на дату и время
+    const [datePart, timePart] = deadline.split(", ");
+
+    // Разбиваем дату на компоненты (день, месяц, год)
+    const [day, month, year] = datePart.split(".");
+
+    // Формируем строку в формате ISO 8601
+    const isoDateString = `${year}-${month}-${day}T${timePart}`;
+
+    // Преобразуем в объект Date
+    const dateObject = new Date(isoDateString);
+
+    // Проверяем результат
+    if (!isNaN(dateObject.getTime())) {
+        console.log("Преобразование прошло успешно:", dateObject);
+    } else {
+        console.error("Некорректная строка даты:", dateString);
+    }
+
+
+
+    // Проверка на наличие дедлайна
+    
+    const isoDate = dateObject.toISOString();
+    console.log(isoDate);
+    taskDeadlineDateInput.value = isoDate;//.split(' ')[0]; // Дата в формате yyyy-MM-dd
+    // taskDeadlineTimeInput.value = isoDate.split(' ')[1].slice(0, 5); // Время в формате HH:mm
+    
+
+    //document.getElementById('task-edit-modal').style.display = 'flex';
 });
 
 saveButton.addEventListener('click', async () => {
@@ -379,7 +493,7 @@ saveButton.addEventListener('click', async () => {
         });
 
         if (response.ok) {
-            alert('Название успешно изменено!');
+            //alert('Название успешно изменено!');
             window.location.href = `/manager/api_page/${newSlug}/tasks/`;
             // const data = await response.json();
             //document.getElementById('project-name').textContent = `Проект: ${data.name}`;

@@ -76,17 +76,30 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="task-modal-name"></h2>
-                <!-- <span class="close-icon" id="close-task-modal">&times;</span> -->
             </div>
             <p><strong>Статус:</strong> <span id="task-modal-status"></span></p>
-            <p><strong>Описание:</strong></p>
+            <p id="task-modal-content-p"><strong>Описание:</strong></p>
             <p id="task-modal-content"></p>
-            <p><strong>Дедлайн:</strong> <span id="task-modal-deadline"></span></p>
-            <!-- <div class="modal-buttons">
-                <button class="delete-task-button" id="delete-task-button">Удалить</button>
-            </div> -->
-            <div class="modal-buttons">
-                <button type="submit" class="cancel-button" id="cancel-button">Отмена</button>
+            <p id="task-modal-deadline-p"><strong>Дедлайн:</strong> <span id="task-modal-deadline"></span></p>
+            
+            <!-- Форма редактирования -->
+            <form id="edit-task-form" style="display: none;">
+                <label for="edit-task-content">Описание:</label>
+                <textarea id="edit-task-content" rows="3"></textarea>
+    
+                <label for="edit-task-deadline">Дедлайн:</label>
+                <input type="datetime-local" id="edit-task-deadline">
+    
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button" id="cancel-edit-task">Отмена</button>
+                    <button type="submit" class="save-edit-button">Сохранить</button>
+                </div>
+            </form>
+    
+            <!-- Кнопки действий -->
+            <div class="modal-buttons" id="task-modal-buttons">
+                <button type="button" class="cancel-button" id="cancel-button">Отмена</button>
+                <button type="button" class="edit-task-button" id="edit-task-button">Редактировать</button>
                 <button type="button" class="delete-task-button" id="delete-task-button">Удалить</button>
             </div>
         </div>

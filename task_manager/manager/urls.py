@@ -19,7 +19,7 @@ urlpatterns = [
     path('api/statuses/', views.StatusListView.as_view(), name="api_statuses"),
 
     path('api/tasks/<slug:slug>/', views.TaskDetailsView.as_view(), name="api_tasks_details"),
-    path('api/tasks/<int:task_id>/update-status/', views.TaskDetailsView.as_view(), name="api_tasks_update"),
+    path('api/tasks/<int:task_id>/update/', views.TaskDetailsView.as_view(), name="api_tasks_update"),
     path('api/tasks/<int:task_id>/delete/', views.TaskDetailsView.as_view(), name="api_tasks_delete"),
 
     #path('api/tasks/<int:task_id>/update-status/', views.UpdateTaskStatusView.as_view(), name='update_task_status'),

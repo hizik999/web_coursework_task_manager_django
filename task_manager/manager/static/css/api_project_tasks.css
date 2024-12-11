@@ -189,6 +189,14 @@ h1 {
     background-color: #6c757d;
 }
 
+.modal-buttons .edit-task-button {
+    background-color: #6c757d;
+}
+
+.modal-buttons .delete-task-button {
+    background-color: #6c757d;
+}
+
 .modal-buttons .cancel-button:hover {
     background-color: #495057;
 }
