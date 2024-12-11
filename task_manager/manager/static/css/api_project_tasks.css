@@ -18,9 +18,10 @@ h1 {
 
 .kanban-board {
     display: flex;
-    justify-content: space-between; /* Равномерное распределение столбцов */
+    justify-content: flex-start;
     align-items: flex-start;
-    gap: 20px;
+    flex-wrap: wrap; /* Позволяет столбцам переноситься на следующую строку */
+    gap: 20px; /* Промежутки между столбцами */
     padding: 20px;
     width: 100%;
     box-sizing: border-box;
@@ -30,20 +31,15 @@ h1 {
     background: #ffffff;
     border: 1px solid #ced4da;
     border-radius: 10px;
-    min-height: 100px;
-    flex: 1; /* Растягиваем столбцы */
-    margin: 0 10px; /* Отступ между столбцами */
+    width: 500px; /* Ширина столбца */
+    min-height: 100px; /* Минимальная высота */
+    flex-shrink: 0;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
     padding-bottom: 10px;
     transition: height 0.3s ease;
-}
-
-.kanban-column:first-child,
-.kanban-column:last-child {
-    margin: 0; /* Убираем отступы у крайних столбцов */
 }
 
 .kanban-column-header {
@@ -62,16 +58,16 @@ h1 {
     padding: 0;
     margin: 0;
     width: 100%;
-    min-height: 100px;
+    min-height: 100px; /* Минимальная высота списка */
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    border: 2px dashed transparent;
+    flex-direction: column; /* Располагаем задачи вертикально */
+    gap: 10px; /* Промежуток между задачами */
+    border: 2px dashed transparent; /* Убираем визуальные баги */
 }
 
 .task-list.dragover {
-    border-color: #90caf9;
-    background-color: #e3f2fd;
+    border-color: #90caf9; /* Подсветка при наведении задачи */
+    background-color: #e3f2fd; /* Лёгкая подсветка */
 }
 
 .task-item {
@@ -82,7 +78,7 @@ h1 {
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     cursor: grab;
-    margin: 0 10px;
+    margin: 0 10px; /* Отступы между задачами */
 }
 
 .task-item:hover {
@@ -93,6 +89,7 @@ h1 {
     opacity: 0.5;
     background-color: #e9ecef;
 }
+
 
 .icon-button {
     background: transparent;
@@ -130,17 +127,77 @@ h1 {
     max-width: 90%;
 }
 
-.add-task-button {
-    background: #ffffff;
-    border: 2px dashed #dee2e6;
+.modal-content h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #343a40;
+}
+
+.modal-content label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
+    color: #495057;
+}
+
+.modal-content input, .modal-content textarea, .modal-content select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ced4da;
     border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.modal-buttons button {
+    background-color: #495057;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.modal-buttons button:hover {
+    background-color: #343a40;
+}
+
+.modal-buttons .cancel-button {
+    background-color: #6c757d;
+}
+
+.modal-buttons .cancel-button:hover {
+    background-color: #495057;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.add-task-button {
+    background: #ffffff; /* Белый фон */
+    border: 2px dashed #dee2e6; /* Прерывистая линия */
+    border-radius: 5px; /* Закругленные углы */
     padding: 10px;
     text-align: center;
-    box-shadow: none;
+    box-shadow: none; /* Убираем тень */
     cursor: pointer;
-    margin-top: auto; /* Кнопка всегда снизу */
+    margin: 0 10px; /* Отступы между задачами */
     font-size: 16px;
-    color: #6c757d;
+    color: #6c757d; /* Цвет текста */
     font-weight: bold;
     display: flex;
     justify-content: center;
@@ -149,37 +206,33 @@ h1 {
 }
 
 .add-task-button:hover {
-    background: #f8f9fa;
-    color: #495057;
-    border-color: #adb5bd;
+    background: #f8f9fa; /* Лёгкая подсветка при наведении */
+    color: #495057; /* Темнее текст при наведении */
+    border-color: #adb5bd; /* Цвет границы при наведении */
 }
 
-.back-button {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    text-decoration: none;
-    color: #495057;
-    font-size: 18px;
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.task-item.add-task-button {
+    margin-top: auto;
+    pointer-events: auto;
+    cursor: pointer;
+    user-select: none;
+    background: #e9ecef;
     font-weight: bold;
-    background: #ffffff;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    padding: 8px 15px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.back-button:hover {
-    background: #f8f9fa;
-    color: #343a40;
-    border-color: #adb5bd;
+    text-align: center;
 }
 
 /* Адаптивность */
+
+
 @media (max-width: 768px) {
     .kanban-column {
-        flex: 1 1 100%;
-        max-width: unset;
+        flex: 1 1 100%; /* Один столбец на строку */
+        max-width: unset; /* Убираем максимальную ширину */
     }
 }

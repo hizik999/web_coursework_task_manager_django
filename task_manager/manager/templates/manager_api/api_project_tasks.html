@@ -71,6 +71,23 @@
         </div>
     </div>
 
+    <!-- Модальное окно для информации о задаче -->
+    <div class="modal" id="task-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="task-modal-name"></h2>
+                <span class="close-icon" id="close-task-modal">&times;</span>
+            </div>
+            <p><strong>Статус:</strong> <span id="task-modal-status"></span></p>
+            <p><strong>Описание:</strong></p>
+            <p id="task-modal-content"></p>
+            <p><strong>Дедлайн:</strong> <span id="task-modal-deadline"></span></p>
+            <div class="modal-buttons">
+                <button class="delete-task-button" id="delete-task-button">Удалить</button>
+            </div>
+        </div>
+    </div>
+
     <script src="{% static 'script/api_project_tasks.js' %}"></script>
 </body>
 </html>

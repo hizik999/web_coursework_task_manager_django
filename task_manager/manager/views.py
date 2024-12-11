@@ -50,6 +50,21 @@ class ProjectListView(APIView):
         project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class TaskDetailsView(APIView):
+    def get(self, request, slug):
+        task = get_object_or_404(Task, slug=slug)
+        serializer = TaskSerializer(task)
+        return Response(serializer.data)
+    
+    def patch(self, request, task_id):
+        task = get_object_or_404(Task, id=task_id)
+        data = request.data
+        serializer = TaskSerializer(instance=task, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class TaskListView(APIView):
     def get(self, request, slug):
         # Получаем проект по slug

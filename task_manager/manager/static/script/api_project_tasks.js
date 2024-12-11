@@ -77,6 +77,49 @@ async function loadStatuses() {
     }
 }
 
+// Получение информации о задаче
+async function fetchTaskData(taskSlug) {
+    const response = await fetch(`/manager/api/tasks/${taskSlug}/`);
+    if (!response.ok) {
+        console.error('Ошибка загрузки данных задачи');
+        return null;
+    }
+    return response.json();
+}
+
+// Открытие модального окна с информацией о задаче
+function openTaskModal(task) {
+    const taskModal = document.getElementById('task-modal');
+    document.getElementById('task-modal-name').textContent = task.name;
+    document.getElementById('task-modal-status').textContent = task.status.name;
+    document.getElementById('task-modal-content').textContent = task.content || 'Описание отсутствует';
+    document.getElementById('task-modal-deadline').textContent = task.deadline ? new Date(task.deadline).toLocaleString() : 'Нет дедлайна';
+    taskModal.style.display = 'flex';
+}
+
+// Закрытие модального окна
+document.getElementById('close-task-modal').addEventListener('click', () => {
+    document.getElementById('task-modal').style.display = 'none';
+});
+
+// Добавьте обработчик на карточки задач
+function addTaskClickHandlers() {
+    const taskItems = document.querySelectorAll('.task-item');
+    taskItems.forEach(taskItem => {
+        if (!taskItem.classList.contains('add-task-button')) {
+            taskItem.addEventListener('click', async () => {
+                const taskSlug = taskItem.getAttribute('data-task-slug');
+                const taskData = await fetchTaskData(taskSlug);
+                if (taskData) {
+                    openTaskModal(taskData);
+                } else {
+                    alert('Не удалось загрузить информацию о задаче');
+                }
+            });    
+        }
+    });
+}
+
 // Открытие модального окна для добавления задачи
 function renderAddTaskButton(taskListElement, statusId) {
     const addTaskButton = document.createElement('li');
@@ -100,6 +143,14 @@ function renderAddTaskButton(taskListElement, statusId) {
     taskListElement.appendChild(addTaskButton);
 }
 
+// Закрытие модального окна при клике на область вне модального содержимого
+document.getElementById('task-modal').addEventListener('click', (event) => {
+    const modalContent = document.querySelector('.modal-content');
+    if (!modalContent.contains(event.target)) {
+        document.getElementById('task-modal').style.display = 'none';
+    }
+});
+
 // Закрытие модального окна
 const cancelAddTaskButton = document.querySelector('#add-task-modal .cancel-button');
 cancelAddTaskButton.addEventListener('click', () => {
@@ -111,14 +162,8 @@ cancelAddTaskButton.addEventListener('click', () => {
 function renderKanbanBoard(data) {
     const kanbanBoard = document.getElementById('kanban-board');
     kanbanBoard.innerHTML = '';
-
-    // Отображение заголовка проекта
-    const projectNameElement = document.getElementById('project-name');
-    projectNameElement.textContent = `Проект: ${data.project.name}`;
-
-    // Динамическое изменение title
+    document.getElementById('project-name').textContent = `Проект: ${data.project.name}`;
     document.title = `Проект: ${data.project.name}`;
-
     data.tasks_by_status.forEach(column => {
         const columnElement = document.createElement('div');
         columnElement.className = 'kanban-column';
@@ -134,23 +179,47 @@ function renderKanbanBoard(data) {
         taskListElement.className = 'task-list';
         taskListElement.setAttribute('data-status-id', column.id);
 
-        // Отображение задач
         column.tasks.forEach(task => {
             const taskItemElement = document.createElement('li');
             taskItemElement.className = 'task-item';
             taskItemElement.textContent = task.name;
-            taskItemElement.setAttribute('data-task-id', task.id);
+            taskItemElement.setAttribute('data-task-id', task.id); // Используем slug
+            taskItemElement.setAttribute('data-task-status', task.status);
+            taskItemElement.setAttribute('data-task-slug', task.slug);
             taskItemElement.setAttribute('draggable', 'true');
-            taskListElement.insertBefore(taskItemElement, taskListElement.lastElementChild);
+            taskListElement.appendChild(taskItemElement);
         });
 
         renderAddTaskButton(taskListElement, column.id);
         columnElement.appendChild(taskListElement);
+
         kanbanBoard.appendChild(columnElement);
     });
 
-    enableDragAndDrop(); // Активируем функционал перетаскивания
+    enableDragAndDrop();
+    addTaskClickHandlers(); // Добавляем обработчики для открытия модалки
 }
+
+document.getElementById('delete-task-button').addEventListener('click', async () => {
+    const taskSlug = document.getElementById('task-modal-name').dataset.taskSlug;
+
+    if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
+        const response = await fetch(`/manager/api/tasks/${taskSlug}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+            },
+        });
+
+        if (response.ok) {
+            alert('Задача успешно удалена!');
+            document.getElementById('task-modal').style.display = 'none';
+            initializePage(); // Обновление задач на странице
+        } else {
+            alert('Ошибка удаления задачи.');
+        }
+    }
+});
 
 // Отправка данных задачи на сервер
 document.getElementById('add-task-form').addEventListener('submit', async (e) => {
@@ -299,8 +368,8 @@ saveButton.addEventListener('click', async () => {
             alert('Название успешно изменено!');
             window.location.href = `/manager/api_page/${newSlug}/tasks/`;
             // const data = await response.json();
-            // document.getElementById('project-name').textContent = `Проект: ${data.name}`;
-            // document.title = `Проект: ${data.name}`;
+            //document.getElementById('project-name').textContent = `Проект: ${data.name}`;
+            //document.title = `Проект: ${data.name}`;
 
         } else {
             alert('Ошибка изменения названия проекта');
@@ -317,7 +386,7 @@ cancelEditButton.addEventListener('click', () => {
 async function initializePage() {
     const projectSlug = getProjectSlugFromURL();
     const data = await fetchProjectData(projectSlug);
-
+    
     if (data) {
         renderKanbanBoard(data);
     }
