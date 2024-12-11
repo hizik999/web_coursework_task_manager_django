@@ -17,7 +17,7 @@ class Status(models.Model):
     
 class Project(models.Model):
     name = models.CharField(max_length=50)
-    slug = models.SlugField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=50, unique=True, blank=True)
 
     class Meta:
         db_table = 'projects'
@@ -27,9 +27,22 @@ class Project(models.Model):
     
     def save(self, *args, **kwargs):
         # Генерация слага из названия, если слаг пустой
-        if not self.slug:
-            self.slug = slugify(self.name)
+        if not self.slug and self.name:
+            slug1 = unidecode.unidecode(self.name)
+            base_slug = slugify(slug1)
+            slug = base_slug
+            counter = 1
+
+            # Генерируем уникальный slug
+            while Task.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        elif not self.name:
+            raise ValueError("Project name cannot be empty for slug generation.")  # Обработка случая, когда name пустое
+        
         super().save(*args, **kwargs)
+
     
 class Task(models.Model):
     name = models.CharField(max_length=100)
@@ -47,7 +60,6 @@ class Task(models.Model):
     
     def save(self, *args, **kwargs):
         # Проверяем, что slug пустой и есть имя для генерации
-        print(f"Task name: {self.name}")
         if not self.slug and self.name:
             slug1 = unidecode.unidecode(self.name)
             base_slug = slugify(slug1)

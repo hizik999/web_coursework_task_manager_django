@@ -16,7 +16,6 @@ const apiProjectsUrl = '/manager/api/projects/'; // URL API
         const closeModalBtn = document.getElementById('closeModalBtn');
         const createProjectBtn = document.getElementById('createProjectBtn');
         const projectNameInput = document.getElementById('projectName');
-        const projectSlugInput = document.getElementById('projectSlug');
 
         // Функция для получения данных о проектах
         async function fetchProjects() {
@@ -59,9 +58,8 @@ const apiProjectsUrl = '/manager/api/projects/'; // URL API
         // Создание проекта
         createProjectBtn.addEventListener('click', async () => {
             const projectName = projectNameInput.value.trim();
-            const projectSlug = projectSlugInput.value.trim();
 
-            if (!projectName || !projectSlug) {
+            if (!projectName) {
                 alert('Пожалуйста, заполните все поля');
                 return;
             }
@@ -74,13 +72,12 @@ const apiProjectsUrl = '/manager/api/projects/'; // URL API
                         'Content-Type': 'application/json',
                         'X-CSRFToken': csrfToken // Убедитесь, что CSRF токен добавлен
                     },
-                    body: JSON.stringify({ name: projectName, slug: projectSlug })
+                    body: JSON.stringify({ name: projectName })
                 });
 
                 if (response.ok) {
                     modal.style.display = 'none';
                     projectNameInput.value = '';
-                    projectSlugInput.value = '';
                     fetchProjects(); // Обновляем список проектов
                 } else {
                     alert('Ошибка создания проекта');
