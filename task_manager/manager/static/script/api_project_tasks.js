@@ -91,16 +91,17 @@ async function fetchTaskData(taskSlug) {
 function openTaskModal(task) {
     const taskModal = document.getElementById('task-modal');
     document.getElementById('task-modal-name').textContent = task.name;
-    document.getElementById('task-modal-status').textContent = task.status.name;
+    document.getElementById('task-modal-status').textContent = task.status_name;
     document.getElementById('task-modal-content').textContent = task.content || 'Описание отсутствует';
     document.getElementById('task-modal-deadline').textContent = task.deadline ? new Date(task.deadline).toLocaleString() : 'Нет дедлайна';
+    document.getElementById('delete-task-button').setAttribute('data-task-id', task.id);
     taskModal.style.display = 'flex';
 }
 
 // Закрытие модального окна
-document.getElementById('close-task-modal').addEventListener('click', () => {
-    document.getElementById('task-modal').style.display = 'none';
-});
+// document.getElementById('close-task-modal').addEventListener('click', () => {
+//     document.getElementById('task-modal').style.display = 'none';
+// });
 
 // Добавьте обработчик на карточки задач
 function addTaskClickHandlers() {
@@ -123,7 +124,7 @@ function addTaskClickHandlers() {
 // Открытие модального окна для добавления задачи
 function renderAddTaskButton(taskListElement, statusId) {
     const addTaskButton = document.createElement('li');
-    addTaskButton.className = 'task-item add-task-button';
+    addTaskButton.className = 'add-task-button';
     addTaskButton.textContent = '+';
     addTaskButton.onclick = async () => {
         const addTaskModal = document.getElementById('add-task-modal');
@@ -144,12 +145,12 @@ function renderAddTaskButton(taskListElement, statusId) {
 }
 
 // Закрытие модального окна при клике на область вне модального содержимого
-document.getElementById('task-modal').addEventListener('click', (event) => {
-    const modalContent = document.querySelector('.modal-content');
-    if (!modalContent.contains(event.target)) {
-        document.getElementById('task-modal').style.display = 'none';
-    }
-});
+// document.getElementById('task-modal').addEventListener('click', (event) => {
+//     const modalContent = document.querySelector('.modal-content');
+//     if (!modalContent.contains(event.target)) {
+//         document.getElementById('task-modal').style.display = 'none';
+//     }
+// });
 
 // Закрытие модального окна
 const cancelAddTaskButton = document.querySelector('#add-task-modal .cancel-button');
@@ -157,6 +158,14 @@ cancelAddTaskButton.addEventListener('click', () => {
     const addTaskModal = document.getElementById('add-task-modal');
     addTaskModal.style.display = 'none';
 });
+
+
+// document.getElementById('add-task-modal').addEventListener('click', (event) => {
+//     const modalContent = document.querySelector('.modal-content');
+//     if (!modalContent.contains(event.target)) {
+//         document.getElementById('add-task-modal').style.display = 'none';
+//     }
+// });
 
 // Рендеринг задач и статусов
 function renderKanbanBoard(data) {
@@ -183,7 +192,7 @@ function renderKanbanBoard(data) {
             const taskItemElement = document.createElement('li');
             taskItemElement.className = 'task-item';
             taskItemElement.textContent = task.name;
-            taskItemElement.setAttribute('data-task-id', task.id); // Используем slug
+            taskItemElement.setAttribute('data-task-id', task.id); // Используем id
             taskItemElement.setAttribute('data-task-status', task.status);
             taskItemElement.setAttribute('data-task-slug', task.slug);
             taskItemElement.setAttribute('draggable', 'true');
@@ -200,11 +209,16 @@ function renderKanbanBoard(data) {
     addTaskClickHandlers(); // Добавляем обработчики для открытия модалки
 }
 
-document.getElementById('delete-task-button').addEventListener('click', async () => {
-    const taskSlug = document.getElementById('task-modal-name').dataset.taskSlug;
+// пасхалка (забавная) тут если поменять task-modal на cancel-button, то удалится кнопка ахахахаах
+document.getElementById("cancel-button").addEventListener("click", async () => {
+    document.getElementById("task-modal").style.display = "none";
+});
 
+document.getElementById('delete-task-button').addEventListener('click', async () => {
+    const taskID = document.getElementById('delete-task-button').getAttribute('data-task-id');
+    console.log(taskID);
     if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
-        const response = await fetch(`/manager/api/tasks/${taskSlug}/delete/`, {
+        const response = await fetch(`/manager/api/tasks/${taskID}/delete/`, {
             method: 'DELETE',
             headers: {
                 'X-CSRFToken': getCSRFToken(),

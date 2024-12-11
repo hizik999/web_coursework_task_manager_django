@@ -76,14 +76,18 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="task-modal-name"></h2>
-                <span class="close-icon" id="close-task-modal">&times;</span>
+                <!-- <span class="close-icon" id="close-task-modal">&times;</span> -->
             </div>
             <p><strong>Статус:</strong> <span id="task-modal-status"></span></p>
             <p><strong>Описание:</strong></p>
             <p id="task-modal-content"></p>
             <p><strong>Дедлайн:</strong> <span id="task-modal-deadline"></span></p>
-            <div class="modal-buttons">
+            <!-- <div class="modal-buttons">
                 <button class="delete-task-button" id="delete-task-button">Удалить</button>
+            </div> -->
+            <div class="modal-buttons">
+                <button type="submit" class="cancel-button" id="cancel-button">Отмена</button>
+                <button type="button" class="delete-task-button" id="delete-task-button">Удалить</button>
             </div>
         </div>
     </div>

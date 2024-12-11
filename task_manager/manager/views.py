@@ -53,8 +53,11 @@ class ProjectListView(APIView):
 class TaskDetailsView(APIView):
     def get(self, request, slug):
         task = get_object_or_404(Task, slug=slug)
-        serializer = TaskSerializer(task)
-        return Response(serializer.data)
+        status = get_object_or_404(Status, id=task.status_id)
+        return Response({
+            **TaskSerializer(task).data,
+            "status_name": StatusSerializer(status).data["name"]
+        })    
     
     def patch(self, request, task_id):
         task = get_object_or_404(Task, id=task_id)
@@ -64,6 +67,11 @@ class TaskDetailsView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, task_id):
+        task = get_object_or_404(Task, id=task_id)
+        task.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class TaskListView(APIView):
     def get(self, request, slug):

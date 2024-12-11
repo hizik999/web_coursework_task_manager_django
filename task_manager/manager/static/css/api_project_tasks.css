@@ -31,15 +31,20 @@ h1 {
     background: #ffffff;
     border: 1px solid #ced4da;
     border-radius: 10px;
-    width: 500px; /* Ширина столбца */
+    flex: 1;
     min-height: 100px; /* Минимальная высота */
-    flex-shrink: 0;
+    margin: 0 10px; /* Отступ между столбцами */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
     padding-bottom: 10px;
     transition: height 0.3s ease;
+}
+
+.kanban-column:first-child,
+.kanban-column:last-child {
+    margin: 0; /* Убираем отступы у крайних столбцов */
 }
 
 .kanban-column-header {
@@ -90,7 +95,6 @@ h1 {
     background-color: #e9ecef;
 }
 
-
 .icon-button {
     background: transparent;
     border: none;
@@ -120,10 +124,10 @@ h1 {
 .modal-content {
     background-color: #fff;
     border-radius: 10px;
-    padding: 20px;
-    text-align: center;
+    padding: 20px 30px; /* Добавлены отступы */
+    text-align: left; /* Текст в левом выравнивании */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 400px;
+    width: 400px; /* Фиксированная ширина */
     max-width: 90%;
 }
 
@@ -131,19 +135,28 @@ h1 {
     margin-bottom: 20px;
     font-size: 24px;
     color: #343a40;
+    text-align: center; /* Заголовок по центру */
+}
+
+.modal-content .form-row {
+    display: flex;
+    flex-direction: column; /* Вертикальная структура для метки и ввода */
+    margin-bottom: 15px; /* Отступ между строками */
 }
 
 .modal-content label {
-    display: block;
-    margin: 10px 0 5px;
+    padding-top: 20px;
     font-weight: bold;
     color: #495057;
+    margin-bottom: 100px; /* Отступ от метки до поля */
 }
 
-.modal-content input, .modal-content textarea, .modal-content select {
+.modal-content input, 
+.modal-content textarea, 
+.modal-content select {
+    margin-bottom: 15px; /* Отступ между полями */
     width: 100%;
     padding: 10px;
-    margin-bottom: 15px;
     border: 1px solid #ced4da;
     border-radius: 5px;
     font-size: 16px;
@@ -152,7 +165,7 @@ h1 {
 
 .modal-buttons {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* Кнопки с равным отступом */
     margin-top: 15px;
 }
 
@@ -163,7 +176,9 @@ h1 {
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
 }
 
 .modal-buttons button:hover {
@@ -178,13 +193,31 @@ h1 {
     background-color: #495057;
 }
 
-input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    font-size: 16px;
+/* Дополнительные стили для времени и даты */
+.modal-content .time-picker,
+.modal-content .date-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Расстояние между текстовым полем и иконкой */
+}
+
+.modal-content .time-picker input,
+.modal-content .date-picker input {
+    flex: 1;
+}
+
+/* Общий стиль для иконок */
+.modal-content .time-picker .icon,
+.modal-content .date-picker .icon {
+    font-size: 20px;
+    color: #6c757d;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.modal-content .time-picker .icon:hover,
+.modal-content .date-picker .icon:hover {
+    color: #343a40;
 }
 
 .add-task-button {
@@ -228,8 +261,6 @@ input {
 }
 
 /* Адаптивность */
-
-
 @media (max-width: 768px) {
     .kanban-column {
         flex: 1 1 100%; /* Один столбец на строку */

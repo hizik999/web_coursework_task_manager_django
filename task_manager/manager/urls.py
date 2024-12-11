@@ -20,7 +20,8 @@ urlpatterns = [
 
     path('api/tasks/<slug:slug>/', views.TaskDetailsView.as_view(), name="api_tasks_details"),
     path('api/tasks/<int:task_id>/update-status/', views.TaskDetailsView.as_view(), name="api_tasks_update"),
-    
+    path('api/tasks/<int:task_id>/delete/', views.TaskDetailsView.as_view(), name="api_tasks_delete"),
+
     #path('api/tasks/<int:task_id>/update-status/', views.UpdateTaskStatusView.as_view(), name='update_task_status'),
     ### ---------------------------API pages------------------------------------------------------------------------------------------------
     path('api_page/projects/', views.api_page_projects_list, name="api_page_projects_list"),
