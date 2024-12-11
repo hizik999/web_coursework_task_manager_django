@@ -12,9 +12,18 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TaskSerializer(serializers.ModelSerializer):
-    status = StatusSerializer(source='status_id', read_only=True)
-    project = ProjectSerializer(source='project_id', read_only=True)
+    status = serializers.PrimaryKeyRelatedField(
+        queryset=Status.objects.all()
+    )
+    project = serializers.PrimaryKeyRelatedField(
+        queryset=Project.objects.all(),
+        required=False,
+        write_only=True
+    )
 
     class Meta:
         model = Task
-        fields = '__all__'
+        fields = ['id', 'name', 'slug', 'content', 'status', 'project', 'deadline']
+        extra_kwargs = {
+            'slug': {'read_only': True},
+        }

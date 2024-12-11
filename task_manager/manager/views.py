@@ -16,6 +16,11 @@ from .models import Task, Project, Status
 from .serializers import TaskSerializer, ProjectSerializer, StatusSerializer
 
 
+class StatusListView(APIView):
+    def get(self, request):
+        statuses = Status.objects.all()
+        serializer = StatusSerializer(statuses, many=True)
+        return Response(serializer.data)
 
 class ProjectListView(APIView):
     def get(self, request):
@@ -24,22 +29,20 @@ class ProjectListView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        data = request.data
-        serializer = ProjectSerializer(data=data)
+        serializer = ProjectSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def patch(self, request, slug):
         project = get_object_or_404(Project, slug=slug)
-        data = {"name": request.data['name'], "slug": request.data['new_slug']}
-        serializer = ProjectSerializer(instance=project, data=data)
+        serializer = ProjectSerializer(instance=project, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request, slug):
         project = get_object_or_404(Project, slug=slug)
         project.delete()
@@ -49,30 +52,28 @@ class TaskListView(APIView):
     def get(self, request, slug):
         # Получаем проект по slug
         project = get_object_or_404(Project, slug=slug)
-        # Получаем все статусы
+        # Группируем задачи по статусам
         statuses = Status.objects.all()
-        # Формируем данные задач, группируя их по статусу
         tasks_by_status = [
             {
                 'status': status.name,
                 'id': status.id,
                 'tasks': TaskSerializer(
-                    Task.objects.filter(project_id=project.id, status_id=status.id), 
+                    Task.objects.filter(project=project, status=status),
                     many=True
                 ).data
             }
             for status in statuses
         ]
-        # Формируем ответ
         return Response({
-            'project': ProjectSerializer(project).data,
+            'project': {'id': project.id, 'name': project.name, 'slug': project.slug},
             'tasks_by_status': tasks_by_status
-        }, status=status.HTTP_200_OK)
+        })
 
-    def post(self, request, project_slug):
-        project = Project.objects.get(slug=project_slug)
+    def post(self, request, slug):
+        project = get_object_or_404(Project, slug=slug)
         data = request.data
-        data['project'] = project.id
+        data['project'] = project.id  # Присваиваем project ID напрямую
         serializer = TaskSerializer(data=data)
         if serializer.is_valid():
             serializer.save()

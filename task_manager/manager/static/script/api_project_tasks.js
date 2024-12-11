@@ -10,6 +10,7 @@ const saveButton = document.querySelector('.save-button');
 const newProjectNameInput = document.getElementById('new-project-name');
 const newProjectSlugInput = document.getElementById('new-project-slug');
 
+// Получение CSRF-токена
 function getCSRFToken() {
     const cookies = document.cookie.split(';');
     for (const cookie of cookies) {
@@ -26,7 +27,7 @@ const csrfToken = getCSRFToken();
 // Получение слага из строки адреса
 function getProjectSlugFromURL() {
     const pathParts = window.location.pathname.split('/');
-    return pathParts[pathParts.length - 3]; // Предпоследний элемент, если URL вида /manager/api_page/projects/<slug>/
+    return pathParts[pathParts.length - 3];
 }
 
 // Получение данных о проекте
@@ -38,6 +39,52 @@ async function fetchProjectData(slug) {
     }
     return response.json();
 }
+
+// Получение статусов из API
+async function fetchStatuses() {
+    const response = await fetch('/manager/api/statuses/');
+    if (!response.ok) {
+        console.error('Ошибка загрузки статусов');
+        return [];
+    }
+    return response.json();
+}
+
+// Открытие модального окна для добавления задачи
+function renderAddTaskButton(taskListElement, statusId) {
+    const addTaskButton = document.createElement('button');
+    addTaskButton.className = 'add-task-button';
+    addTaskButton.textContent = '+';
+
+    addTaskButton.onclick = async () => {
+        const addTaskModal = document.getElementById('add-task-modal');
+        const taskStatusSelect = document.getElementById('task-status');
+
+        // Загрузка статусов в select
+        const statuses = await fetchStatuses();
+        taskStatusSelect.innerHTML = ''; // Очищаем старые опции
+        statuses.forEach(status => {
+            const option = document.createElement('option');
+            option.value = status.id;
+            option.textContent = status.name;
+            if (status.id === statusId) {
+                option.selected = true; // Выбираем текущий статус
+            }
+            taskStatusSelect.appendChild(option);
+        });
+
+        addTaskModal.style.display = 'flex';
+    };
+
+    taskListElement.appendChild(addTaskButton);
+}
+
+// Закрытие модального окна
+const cancelAddTaskButton = document.querySelector('#add-task-modal .cancel-button');
+cancelAddTaskButton.addEventListener('click', () => {
+    const addTaskModal = document.getElementById('add-task-modal');
+    addTaskModal.style.display = 'none';
+});
 
 // Рендеринг задач и статусов
 function renderKanbanBoard(data) {
@@ -51,7 +98,6 @@ function renderKanbanBoard(data) {
     // Динамическое изменение title
     document.title = `Проект: ${data.project.name}`;
 
-    // Рендеринг колонок
     data.tasks_by_status.forEach(column => {
         const columnElement = document.createElement('div');
         columnElement.className = 'kanban-column';
@@ -65,25 +111,61 @@ function renderKanbanBoard(data) {
         // Список задач
         const taskListElement = document.createElement('ul');
         taskListElement.className = 'task-list';
-        taskListElement.setAttribute('data-status-id', column.id); // Привязка ID статуса
-        
+        taskListElement.setAttribute('data-status-id', column.id);
+
         column.tasks.forEach(task => {
             const taskItemElement = document.createElement('li');
             taskItemElement.className = 'task-item';
             taskItemElement.textContent = task.name;
-            console.log(task.id);
-            taskItemElement.setAttribute('data-task-id', task.id);// Привязка ID задачи
-
+            taskItemElement.setAttribute('data-task-id', task.id);
             taskItemElement.setAttribute('draggable', 'true');
             taskListElement.appendChild(taskItemElement);
         });
+
+        renderAddTaskButton(taskListElement, column.id);
         columnElement.appendChild(taskListElement);
 
         kanbanBoard.appendChild(columnElement);
     });
 
-    enableDragAndDrop(); // Активируем функционал перетаскивания
+    enableDragAndDrop();
 }
+
+// Отправка данных задачи на сервер
+document.getElementById('add-task-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const projectSlug = getProjectSlugFromURL();
+    const name = document.getElementById('task-name').value;
+    const content = document.getElementById('task-content').value;
+    const statusId = document.getElementById('task-status').value;
+    const deadlineDate = document.getElementById('task-deadline-date').value;
+    const deadlineTime = document.getElementById('task-deadline-time').value;
+    const deadline = deadlineDate && deadlineTime ? `${deadlineDate}T${deadlineTime}` : null;
+
+    const response = await fetch(`/manager/api/projects/${projectSlug}/tasks/add/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify({
+            name,
+            content,
+            status: statusId,
+            deadline,
+            slug: projectSlug
+        }),
+    });
+
+    if (response.ok) {
+        alert('Задача успешно добавлена!');
+        document.getElementById('add-task-modal').style.display = 'none';
+        initializePage();
+    } else {
+        alert('Ошибка добавления задачи');
+    }
+});
 
 // Функционал перетаскивания задач
 function enableDragAndDrop() {
@@ -96,7 +178,7 @@ function enableDragAndDrop() {
         task.addEventListener('dragstart', () => {
             draggedItem = task;
             setTimeout(() => {
-                task.classList.add('hidden'); // Прячем задачу, чтобы она не мешала перетаскиванию
+                task.classList.add('hidden');
             }, 0);
         });
 
@@ -109,7 +191,7 @@ function enableDragAndDrop() {
     taskLists.forEach(list => {
         list.addEventListener('dragover', e => {
             e.preventDefault();
-            list.classList.add('dragover'); // Подсветка столбца
+            list.classList.add('dragover');
         });
 
         list.addEventListener('dragleave', () => {
@@ -121,19 +203,16 @@ function enableDragAndDrop() {
             list.classList.remove('dragover');
 
             if (draggedItem) {
-                // Перемещаем задачу в список
                 list.appendChild(draggedItem);
 
-                // Отправляем запрос на сервер для обновления статуса задачи
                 const taskId = draggedItem.getAttribute('data-task-id');
-                console.log(taskId);
                 const newStatusId = list.getAttribute('data-status-id');
-                console.log(newStatusId);
+
                 fetch(`/manager/tasks/${taskId}/update-status/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-CSRFToken': getCSRFToken(),
                     },
                     body: JSON.stringify({ status_id: newStatusId }),
                 }).then(response => {
@@ -148,78 +227,12 @@ function enableDragAndDrop() {
 
 // Инициализация страницы
 async function initializePage() {
-    const projectSlug = getProjectSlugFromURL(); // Получаем слаг из URL
+    const projectSlug = getProjectSlugFromURL();
     const data = await fetchProjectData(projectSlug);
 
     if (data) {
         renderKanbanBoard(data);
     }
 }
-
-// Удаление проекта
-deleteButton.addEventListener('click', () => {
-    deleteModal.style.display = 'flex';
-});
-
-confirmButton.addEventListener('click', async () => {
-    const projectSlug = window.location.pathname.split('/')[window.location.pathname.split('/').length - 3];
-    const response = await fetch(`/manager/api/projects/${projectSlug}/delete/`, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        },
-    });
-
-    if (response.ok) {
-        alert('Проект успешно удален!');
-        window.location.href = '/manager/api_page/';
-    } else {
-        alert('Ошибка удаления проекта');
-    }
-});
-
-cancelDeleteButton.addEventListener('click', () => {
-    deleteModal.style.display = 'none';
-});
-
-// Редактирование проекта
-editButton.addEventListener('click', () => {
-    editModal.style.display = 'flex';
-});
-
-saveButton.addEventListener('click', async () => {
-    const projectSlug = window.location.pathname.split('/')[window.location.pathname.split('/').length - 3];
-    console.log(window.location.pathname.split('/'));
-    const newName = newProjectNameInput.value.trim();
-    const newSlug = newProjectSlugInput.value.trim();
-    console.log("{{ csrf_token }}")
-    if (newName) {
-        const response = await fetch(`/manager/api/projects/${projectSlug}/edit/`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({ name: newName, slug: projectSlug, new_slug: newSlug }),
-        });
-
-        if (response.ok) {
-            alert('Название успешно изменено!');
-            window.location.href = `/manager/api_page/${newSlug}/tasks/`;
-            // const data = await response.json();
-            // document.getElementById('project-name').textContent = `Проект: ${data.name}`;
-            // document.title = `Проект: ${data.name}`;
-
-        } else {
-            alert('Ошибка изменения названия проекта');
-        }
-        editModal.style.display = 'none';
-    }
-});
-
-cancelEditButton.addEventListener('click', () => {
-    editModal.style.display = 'none';
-});
 
 document.addEventListener('DOMContentLoaded', initializePage);

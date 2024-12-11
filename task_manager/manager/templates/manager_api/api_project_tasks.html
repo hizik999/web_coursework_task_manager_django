@@ -40,6 +40,36 @@
         </div>
     </div>
 
+    <!-- Модальное окно для добавления задачи -->
+    <div class="modal" id="add-task-modal">
+        <div class="modal-content">
+            <h2>Добавить задачу</h2>
+            <form id="add-task-form">
+                <label for="task-name">Название:</label>
+                <input type="text" id="task-name" placeholder="Введите название задачи" required>
+
+                <label for="task-content">Содержание:</label>
+                <textarea id="task-content" placeholder="Введите содержание задачи"></textarea>
+
+                <label for="task-status">Статус:</label>
+                <select id="task-status">
+                    <!-- Опции статусов будут добавлены через JS -->
+                </select>
+
+                <label for="task-deadline-date">Дедлайн (Дата):</label>
+                <input type="date" id="task-deadline-date">
+
+                <label for="task-deadline-time">Дедлайн (Время):</label>
+                <input type="time" id="task-deadline-time">
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button">Отмена</button>
+                    <button type="submit" class="save-button">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="{% static 'script/api_project_tasks.js' %}"></script>
 </body>
 </html>

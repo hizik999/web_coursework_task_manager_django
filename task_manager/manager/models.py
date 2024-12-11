@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
+import unidecode
 # Create your models here.
     
 class Status(models.Model):
@@ -32,10 +33,10 @@ class Project(models.Model):
     
 class Task(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True, blank=True)
     content = models.TextField()
-    status_id = models.ForeignKey(Status, on_delete=models.PROTECT, related_name='tasks', null=False)
-    project_id = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks', null=False)
+    status = models.ForeignKey('Status', on_delete=models.PROTECT, related_name='tasks')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='tasks')
     deadline = models.DateTimeField()
 
     class Meta:
@@ -45,7 +46,20 @@ class Task(models.Model):
         return self.name
     
     def save(self, *args, **kwargs):
-        # Генерация слага из названия, если слаг пустой
-        if not self.slug:
-            self.slug = slugify(self.name)
+        # Проверяем, что slug пустой и есть имя для генерации
+        print(f"Task name: {self.name}")
+        if not self.slug and self.name:
+            slug1 = unidecode.unidecode(self.name)
+            base_slug = slugify(slug1)
+            slug = base_slug
+            counter = 1
+
+            # Генерируем уникальный slug
+            while Task.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        elif not self.name:
+            raise ValueError("Task name cannot be empty for slug generation.")  # Обработка случая, когда name пустое
+
         super().save(*args, **kwargs)
