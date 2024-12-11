@@ -50,28 +50,49 @@ async function fetchStatuses() {
     return response.json();
 }
 
-// Открытие модального окна для добавления задачи
-function renderAddTaskButton(taskListElement, statusId) {
-    const addTaskButton = document.createElement('button');
-    addTaskButton.className = 'add-task-button';
-    addTaskButton.textContent = '+';
+async function loadStatuses() {
+    const taskStatusSelect = document.getElementById('task-status');
 
-    addTaskButton.onclick = async () => {
-        const addTaskModal = document.getElementById('add-task-modal');
-        const taskStatusSelect = document.getElementById('task-status');
+    // Очищаем старые опции
+    taskStatusSelect.innerHTML = '';
 
-        // Загрузка статусов в select
-        const statuses = await fetchStatuses();
-        taskStatusSelect.innerHTML = ''; // Очищаем старые опции
+    try {
+        const response = await fetch('/manager/api/statuses/');
+        if (!response.ok) {
+            console.error('Ошибка загрузки статусов');
+            return;
+        }
+
+        const statuses = await response.json();
+
+        // Заполняем выпадающий список
         statuses.forEach(status => {
             const option = document.createElement('option');
             option.value = status.id;
             option.textContent = status.name;
-            if (status.id === statusId) {
-                option.selected = true; // Выбираем текущий статус
-            }
             taskStatusSelect.appendChild(option);
         });
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+
+// Открытие модального окна для добавления задачи
+function renderAddTaskButton(taskListElement, statusId) {
+    const addTaskButton = document.createElement('li');
+    addTaskButton.className = 'task-item add-task-button';
+    addTaskButton.textContent = '+';
+    addTaskButton.onclick = async () => {
+        const addTaskModal = document.getElementById('add-task-modal');
+        const taskStatusSelect = document.getElementById('task-status');
+
+        // Загружаем статусы при открытии модального окна
+        await loadStatuses();
+
+        // Устанавливаем текущий статус в select
+        if (statusId) {
+            taskStatusSelect.value = statusId;
+        }
 
         addTaskModal.style.display = 'flex';
     };
@@ -113,22 +134,22 @@ function renderKanbanBoard(data) {
         taskListElement.className = 'task-list';
         taskListElement.setAttribute('data-status-id', column.id);
 
+        // Отображение задач
         column.tasks.forEach(task => {
             const taskItemElement = document.createElement('li');
             taskItemElement.className = 'task-item';
             taskItemElement.textContent = task.name;
             taskItemElement.setAttribute('data-task-id', task.id);
             taskItemElement.setAttribute('draggable', 'true');
-            taskListElement.appendChild(taskItemElement);
+            taskListElement.insertBefore(taskItemElement, taskListElement.lastElementChild);
         });
 
         renderAddTaskButton(taskListElement, column.id);
         columnElement.appendChild(taskListElement);
-
         kanbanBoard.appendChild(columnElement);
     });
 
-    enableDragAndDrop();
+    enableDragAndDrop(); // Активируем функционал перетаскивания
 }
 
 // Отправка данных задачи на сервер
@@ -169,7 +190,7 @@ document.getElementById('add-task-form').addEventListener('submit', async (e) =>
 
 // Функционал перетаскивания задач
 function enableDragAndDrop() {
-    const taskItems = document.querySelectorAll('.task-item');
+    const taskItems = document.querySelectorAll('.task-item:not(.add-task-button)');
     const taskLists = document.querySelectorAll('.task-list');
 
     let draggedItem = null;
@@ -198,12 +219,13 @@ function enableDragAndDrop() {
             list.classList.remove('dragover');
         });
 
-        list.addEventListener('drop', async e => {
+        list.addEventListener('drop', e => {
             e.preventDefault();
             list.classList.remove('dragover');
 
             if (draggedItem) {
-                list.appendChild(draggedItem);
+                const addTaskButton = list.querySelector('.add-task-button');
+                list.insertBefore(draggedItem, addTaskButton); // Перемещаем задачу перед кнопкой
 
                 const taskId = draggedItem.getAttribute('data-task-id');
                 const newStatusId = list.getAttribute('data-status-id');
