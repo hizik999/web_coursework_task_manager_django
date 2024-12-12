@@ -121,6 +121,11 @@ function addTaskClickHandlers() {
     });
 }
 
+// Открытие модального окна для редактирования проекта
+editButton.addEventListener('click', () => {
+    editModal.style.display = 'flex';
+});
+
 // Открытие модального окна для добавления задачи
 function renderAddTaskButton(taskListElement, statusId) {
     const addTaskButton = document.createElement('li');
@@ -471,14 +476,13 @@ editTaskButton.addEventListener('click', () => {
     // taskDeadlineTimeInput.value = isoDate.split(' ')[1].slice(0, 5); // Время в формате HH:mm
     
 
-    //document.getElementById('task-edit-modal').style.display = 'flex';
+    document.getElementById('task-edit-modal').style.display = 'flex';
 });
 
 saveButton.addEventListener('click', async () => {
     const projectSlug = window.location.pathname.split('/')[window.location.pathname.split('/').length - 3];
     console.log(window.location.pathname.split('/'));
     const newName = newProjectNameInput.value.trim();
-    const newSlug = newProjectSlugInput.value.trim();
     console.log("{{ csrf_token }}")
     if (newName) {
         const response = await fetch(`/manager/api/projects/${projectSlug}/edit/`, {
@@ -487,13 +491,14 @@ saveButton.addEventListener('click', async () => {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrfToken
             },
-            body: JSON.stringify({ name: newName, slug: projectSlug, new_slug: newSlug }),
+            body: JSON.stringify({ name: newName, slug: projectSlug}),
         });
 
         if (response.ok) {
             //alert('Название успешно изменено!');
-            window.location.href = `/manager/api_page/${newSlug}/tasks/`;
-            // const data = await response.json();
+            const data = await response.json();
+            window.location.href = `/manager/api_page/${data.slug}/tasks/`;
+            
             //document.getElementById('project-name').textContent = `Проект: ${data.name}`;
             //document.title = `Проект: ${data.name}`;
 

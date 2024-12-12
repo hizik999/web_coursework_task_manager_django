@@ -27,7 +27,7 @@ class Project(models.Model):
     
     def save(self, *args, **kwargs):
         # Генерация слага из названия, если слаг пустой
-        if not self.slug and self.name:
+        if self.name:
             slug1 = unidecode.unidecode(self.name)
             base_slug = slugify(slug1)
             slug = base_slug
