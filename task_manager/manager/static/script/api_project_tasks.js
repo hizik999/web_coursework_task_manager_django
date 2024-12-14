@@ -1,4 +1,3 @@
-const apiBaseUrl = '/manager/api/projects';
 const deleteButton = document.getElementById('delete-project');
 const editButton = document.getElementById('edit-project');
 const deleteModal = document.getElementById('delete-modal');
@@ -32,7 +31,7 @@ function getProjectSlugFromURL() {
 
 // Получение данных о проекте
 async function fetchProjectData(slug) {
-    const response = await fetch(`${apiBaseUrl}/${slug}/tasks/`);
+    const response = await fetch(`/manager/api/tasks/grouped-by-status/?project_slug=${slug}`);
     if (!response.ok) {
         console.error('Ошибка загрузки данных проекта');
         return null;
@@ -78,8 +77,8 @@ async function loadStatuses() {
 }
 
 // Получение информации о задаче
-async function fetchTaskData(taskSlug) {
-    const response = await fetch(`/manager/api/tasks/${taskSlug}/`);
+async function fetchTaskData(taskId) {
+    const response = await fetch(`/manager/api/tasks/${taskId}/`);
     if (!response.ok) {
         console.error('Ошибка загрузки данных задачи');
         return null;
@@ -109,8 +108,8 @@ function addTaskClickHandlers() {
     taskItems.forEach(taskItem => {
         if (!taskItem.classList.contains('add-task-button')) {
             taskItem.addEventListener('click', async () => {
-                const taskSlug = taskItem.getAttribute('data-task-slug');
-                const taskData = await fetchTaskData(taskSlug);
+                const taskId = taskItem.getAttribute('data-task-id');
+                const taskData = await fetchTaskData(taskId);
                 if (taskData) {
                     openTaskModal(taskData);
                 } else {
@@ -223,7 +222,7 @@ document.getElementById('delete-task-button').addEventListener('click', async ()
     const taskID = document.getElementById('delete-task-button').getAttribute('data-task-id');
     console.log(taskID);
     if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
-        const response = await fetch(`/manager/api/tasks/${taskID}/delete/`, {
+        const response = await fetch(`/manager/api/tasks/${taskID}/delete_task/`, {
             method: 'DELETE',
             headers: {
                 'X-CSRFToken': getCSRFToken(),
@@ -250,7 +249,7 @@ document.getElementById('add-task-form').addEventListener('submit', async (e) =>
     const statusId = document.getElementById('task-status').value;
     const deadlineDate = document.getElementById('task-deadline-date').value;
 
-    const response = await fetch(`/manager/api/projects/${projectSlug}/tasks/add/`, {
+    const response = await fetch(`/manager/api/projects/${projectSlug}/tasks/add_task/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -261,7 +260,7 @@ document.getElementById('add-task-form').addEventListener('submit', async (e) =>
             content,
             status: statusId,
             deadline: deadlineDate,
-            slug: projectSlug
+            // slug: projectSlug
         }),
     });
 
@@ -385,9 +384,10 @@ function enableDragAndDrop() {
                 list.insertBefore(draggedItem, addTaskButton); // Перемещаем задачу перед кнопкой
 
                 const taskId = draggedItem.getAttribute('data-task-id');
+                const taskSlug = draggedItem.getAttribute('data-task-slug');
                 const newStatusId = list.getAttribute('data-status-id');
 
-                fetch(`/manager/api/tasks/${taskId}/update/`, {
+                fetch(`/manager/api/tasks/${taskId}/update_status/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -411,7 +411,7 @@ deleteButton.addEventListener('click', () => {
 
 confirmButton.addEventListener('click', async () => {
     const projectSlug = window.location.pathname.split('/')[window.location.pathname.split('/').length - 3];
-    const response = await fetch(`/manager/api/projects/${projectSlug}/delete/`, {
+    const response = await fetch(`/manager/api/projects/${projectSlug}/delete_project/`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
@@ -485,7 +485,7 @@ saveButton.addEventListener('click', async () => {
     const newName = newProjectNameInput.value.trim();
     console.log("{{ csrf_token }}")
     if (newName) {
-        const response = await fetch(`/manager/api/projects/${projectSlug}/edit/`, {
+        const response = await fetch(`/manager/api/projects/${projectSlug}/update_project/`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',

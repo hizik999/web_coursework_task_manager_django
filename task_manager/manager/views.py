@@ -1,126 +1,165 @@
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.utils.text import slugify
-
-from django.shortcuts import render, get_object_or_404
-from .models import Project, Status, Task
-from django.http import JsonResponse
-import json
-from django.views.decorators.csrf import csrf_exempt
-
-### -----------------------------------API---------------------------------------------------------------------------------------------------------
-from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from rest_framework import status
-from .models import Task, Project, Status
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
+from .models import Project, Status, Task
 from .serializers import TaskSerializer, ProjectSerializer, StatusSerializer
 
 
-class StatusListView(APIView):
-    def get(self, request):
-        statuses = Status.objects.all()
-        serializer = StatusSerializer(statuses, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+class StatusViewSet(ModelViewSet):
+    """
+    ViewSet для управления статусами.
+    """
+    queryset = Status.objects.all()
+    serializer_class = StatusSerializer
 
-class ProjectListView(APIView):
-    def get(self, request):
-        projects = Project.objects.all()
-        serializer = ProjectSerializer(projects, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        data = request.data
-        serializer = ProjectSerializer(data=data)
+class ProjectViewSet(ModelViewSet):
+    """
+    ViewSet для управления проектами.
+    """
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    lookup_field = 'slug'  # Используем slug вместо id для поиска
+
+    @action(detail=False, methods=['post'], url_path='add')
+    def add_project(self, request):
+        """
+        Добавить проект.
+        """
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def patch(self, request, slug):
+
+    @action(detail=True, methods=['patch'])
+    def update_project(self, request, slug=None):
+        """
+        Кастомное обновление проекта по slug.
+        """
         project = get_object_or_404(Project, slug=slug)
-        data = request.data
-        serializer = ProjectSerializer(instance=project, data=data)
+        serializer = self.get_serializer(instance=project, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, slug):
+    @action(detail=True, methods=['delete'])
+    def delete_project(self, request, slug=None):
+        """
+        Удалить проект.
+        """
         project = get_object_or_404(Project, slug=slug)
         project.delete()
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-class TaskDetailsView(APIView):
-    def get(self, request, slug):
-        task = get_object_or_404(Task, slug=slug)
-        status = get_object_or_404(Status, id=task.status_id)
+
+class TaskViewSet(ModelViewSet):
+    """
+    ViewSet для управления задачами.
+    """
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    lookup_fields = 'id'  # Используем id для поиска задач
+
+    @action(detail=False, methods=['post'], url_path='add_task')
+    def add_task(self, request, project_slug=None):
+        """
+        Добавить задачу.
+        """
+        project_id = Project.objects.filter(slug=project_slug).first().id
+        data = request.data
+        data['project'] = project_id
+        serializer = self.get_serializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get'], url_path='details')
+    def task_details(self, request, pk=None):
+        """
+        Получить детальную информацию о задаче, включая название статуса.
+        """
+        task = get_object_or_404(Task, id=pk)
+        status_instance = get_object_or_404(Status, id=task.status_id)
         return Response({
             **TaskSerializer(task).data,
-            "status_name": StatusSerializer(status).data["name"]
-        })    
-    
-    def patch(self, request, task_id):
-        task = get_object_or_404(Task, id=task_id)
-        data = request.data
-        data["status"] = task.status_id
-        data["name"] = task.name
-        serializer = TaskSerializer(instance=task, data=data)
+            "status_name": StatusSerializer(status_instance).data["name"]
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='update_status')
+    def update_task_status(self, request, pk=None):
+        """
+        Обновить статус задачи.
+        """
+        task = get_object_or_404(Task, id=pk)
+        data = {
+            "content": task.content,
+            "deadline": task.deadline,
+            "status": request.data.get("status_id"),
+            "name": task.name
+        }
+        serializer = self.get_serializer(instance=task, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['patch'], url_path='update')
+    def update_task(self, request, pk=None):
+        """
+        Обновить дедлайн и контент задачи.
+        """
+        task = get_object_or_404(Task, id=pk)
+        data = {
+            "content": request.data.get("content"),
+            "deadline": request.data.get("deadline"),
+            "status": task.status_id,
+            "name": task.name
+        }
+        serializer = self.get_serializer(instance=task, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def post(self, request, task_id):
-        task = get_object_or_404(Task, id=task_id)
-        data = {}
-        data["content"] = task.content
-        data["deadline"] = task.deadline
-        data["status"] = request.data["status_id"]
-        data["name"] = task.name
-        serializer = TaskSerializer(instance=task, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self, request, task_id):
-        task = get_object_or_404(Task, id=task_id)
+    @action(detail=True, methods=['delete'])
+    def delete_task(self, request, pk=None):
+        """
+        Удалить задачу.
+        """
+        task = get_object_or_404(Task, id=pk)
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class TaskListView(APIView):
-    def get(self, request, slug):
-        # Получаем проект по slug
-        project = get_object_or_404(Project, slug=slug)
-        # Группируем задачи по статусам
+    @action(detail=False, methods=['get'], url_path='grouped-by-status')
+    def grouped_by_status(self, request):
+        """
+        Группировать задачи по статусам в рамках проекта.
+        """
+        project_slug = request.query_params.get('project_slug')
+        project = get_object_or_404(Project, slug=project_slug)
         statuses = Status.objects.all()
         tasks_by_status = [
             {
                 'status': status.name,
                 'id': status.id,
-                'tasks': TaskSerializer(
-                    Task.objects.filter(project=project, status=status),
-                    many=True
-                ).data
+                'tasks': TaskSerializer(Task.objects.filter(project=project, status=status), many=True).data
             }
             for status in statuses
         ]
         return Response({
             'project': {'id': project.id, 'name': project.name, 'slug': project.slug},
             'tasks_by_status': tasks_by_status
-        })
+        }, status=status.HTTP_200_OK)
 
-    def post(self, request, slug):
-        project = get_object_or_404(Project, slug=slug)
-        data = request.data
-        data['project'] = project.id  # Присваиваем project ID напрямую
-        serializer = TaskSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-### -----------------------------------Renders for API---------------------------------------------------------------------------------------------------------
+# Рендеры для API
+from django.shortcuts import render
+
 def api_page_projects_list(request):
     return render(request, 'manager_api/api_project_list.html')
 
