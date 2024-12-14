@@ -85,10 +85,11 @@ async function fetchTaskData(taskId) {
     }
     return response.json();
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Открытие модального окна с информацией о задаче
 function openTaskModal(task) {
     const taskModal = document.getElementById('task-modal');
+    
     document.getElementById('task-modal-name').textContent = task.name;
     document.getElementById('task-modal-status').textContent = task.status_name;
     document.getElementById('task-modal-content').textContent = task.content || 'Описание отсутствует';
@@ -102,14 +103,34 @@ function openTaskModal(task) {
 //     document.getElementById('task-modal').style.display = 'none';
 // });
 
+
+
+async function getStatusNameById(statusId) {
+    const response = await fetch(`/manager/api/statuses/`);
+    if (!response.ok) {
+        console.error('Ошибка загрузки данных статуса');
+        return null;
+    }
+    return response.json();
+}
+
+
 // Добавьте обработчик на карточки задач
 function addTaskClickHandlers() {
     const taskItems = document.querySelectorAll('.task-item');
+    
     taskItems.forEach(taskItem => {
         if (!taskItem.classList.contains('add-task-button')) {
             taskItem.addEventListener('click', async () => {
                 const taskId = taskItem.getAttribute('data-task-id');
                 const taskData = await fetchTaskData(taskId);
+                const statuses = await getStatusNameById(taskData.status_id);
+                console.log(statuses);
+                statuses.forEach(status => {
+                    if (status.id === taskData.status) {
+                        taskData["status_name"] = status.name;
+                    }
+                })
                 if (taskData) {
                     openTaskModal(taskData);
                 } else {
@@ -260,7 +281,6 @@ document.getElementById('add-task-form').addEventListener('submit', async (e) =>
             content,
             status: statusId,
             deadline: deadlineDate,
-            // slug: projectSlug
         }),
     });
 
