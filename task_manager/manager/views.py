@@ -137,24 +137,28 @@ class TaskViewSet(ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='grouped-by-status')
     def grouped_by_status(self, request):
-        """
-        Группировать задачи по статусам в рамках проекта.
-        """
         project_slug = request.query_params.get('project_slug')
-        project = get_object_or_404(Project, slug=project_slug)
+        project = Project.objects.filter(slug=project_slug).first()
+        if not project:
+            return Response({"error": "Project not found"}, status=404)
+
         statuses = Status.objects.all()
         tasks_by_status = [
             {
                 'status': status.name,
                 'id': status.id,
-                'tasks': TaskSerializer(Task.objects.filter(project=project, status=status), many=True).data
+                'tasks': TaskSerializer(
+                    Task.objects.filter(project=project, status=status),
+                    many=True,
+                    context={'request': request}  # Передаём объект request
+                ).data
             }
             for status in statuses
         ]
         return Response({
             'project': {'id': project.id, 'name': project.name, 'slug': project.slug},
             'tasks_by_status': tasks_by_status
-        }, status=status.HTTP_200_OK)
+        })
 
 
 # Рендеры для API
